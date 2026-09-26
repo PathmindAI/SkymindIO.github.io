@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+header.row .navbar {
+    background: #2B2D2F !important;
+    opacity: 0.95;
+    -webkit-box-shadow: 0 2px 25px #2B2D2F;
+    box-shadow: 0 2px 25px #2B2D2F;
+}
+</style>
+
+<!--==========Header==========-->
+{% include head.html %}
+
+<body class="blog-page" data-scroll-animation="false">
+
+    <!--==========Navigation==========-->
+    <header class="row" id="header">
+      {% include nav.html %}
+    </header>
+
+    <!--==========Page Header==========-->
+    <section class="row page-header">
+        <div class="container">
+            <div class="row">
+                <h2>A.I. Wiki</h2>
+                <h4>A Beginner’s Guide to Important Topics in AI, Machine Learning, and Deep Learning.</h4>
+            </div>
+        </div>
+    </section>
+    <!--==========Blog Section==========-->
+    <section class="row blog-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 sidebar">
+                    <div class="row m0 widget widget-search wow fadeInUp">
+
+                      <!--==========Wiki Search Bar==========-->
+                        <input type="checkbox" id="wiki-toggle">
+                        <label for="wiki-toggle">
+                            <i class="fa fa-search"></i> Search
+                        </label>
+
+                        <div class="collapseable">
+                            <div class="input-group">
+                              <input id="wiki-search-input" type="search" class="form-control" placeholder="Search articles..." onkeyup="wikiSearchFn()">
+                              <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                            </div>
+                            <div class="wiki-links">
+                              <ul id="wiki-links-ul">
+                                {% if page.url contains "jp" %}
+                                    {% for page in site.wiki-jp %}
+                                      <li><a href="{{ page.url }}">{{ page.short_title }}</a></li>
+                                    {% endfor %}
+                                {% elsif page.url contains "kr" %}
+                                    {% for page in site.wiki-kr %}
+                                      <li><a href="{{ page.url }}">{{ page.short_title }}</a></li>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for page in site.wiki %}
+                                      <li><a href="{{ page.url }}">{{ page.short_title }}</a></li>
+                                    {% endfor %}
+                                {% endif %}
+                              </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                   <div class="col-sm-8">
+                    <div class="row blog single-blog wow fadeInUp">
+                        <h1>{{ page.title }}</h1>
+                        {{ content }}
+                    </div>
+
+                    <div id="fb-root"></div>
+                    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.3"></script>
+
+                    <script>window.twttr = (function(d, s, id) {
+                      var js, fjs = d.getElementsByTagName(s)[0],
+                        t = window.twttr || {};
+                      if (d.getElementById(id)) return t;
+                      js = d.createElement(s);
+                      js.id = id;
+                      js.src = "https://platform.twitter.com/widgets.js";
+                      fjs.parentNode.insertBefore(js, fjs);
+
+                      t._e = [];
+                      t.ready = function(f) {
+                        t._e.push(f);
+                      };
+
+                      return t;
+                    }(document, "script", "twitter-wjs"));</script>
+
+
+                    <style>
+                      .fb-share-button span {
+                        height: 33px !important;
+                        margin-right: 5px !important;
+                      }
+                    </style>
+                
+
+
+                    {% if page.short_title == "Wiki Home" %}
+                    {% else %}
+                    <div class="media author-about">
+                        <div class="media-left">
+                            <a href="#"><img src="/images/pathmind/about/chrisnicholson.jpg" alt=""></a>
+                        </div>
+                        <div class="media-body">
+                            <h3>Chris V. Nicholson</h3>
+                            <p>Chris V. Nicholson is a member of the global affairs team at OpenAI. He led the AI startups Skymind and Pathmind from 2014-2021, and previously reported for the New York Times and Bloomberg News.</p>
+                            <ul class="nav">
+                                <li><a href="https://twitter.com/chrisvnicholson"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="https://www.linkedin.com/in/chrisvnicholson"><i class="fa fa-linkedin"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!--==========Footer==========-->
+    {% include footer.html %}
+
+    <!-- Wiki Search Bar -->
+    <script type="text/javascript">
+      function wikiSearchFn() {
+        // Declare variables
+        var input, filter, ul, li, a, i;
+        input = document.getElementById('wiki-search-input');
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("wiki-links-ul");
+        li = ul.getElementsByTagName('li');
+
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < li.length; i++) {
+            a = li[i].getElementsByTagName("a")[0];
+            if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+      }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+plugins:
+  - jekyll-sitemap
+
+title : "Pathmind"
+description: Add Deep Reinforcement Learning to Simulation
+author :
+  name : Pathmind Inc.
+  email : help@pathmind.com
+
+collections:
+  wiki:
+    output: true
+    permalink: :name
+
+  wiki-jp:
+    output: true
+    permalink: /jp/:name
+
+  wiki-kr:
+    output: true
+    permalink: /kr/:name
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "wiki"
+    values:
+      layout: wiki
+  -
+    scope:
+      path: ""
+      type: "wiki-jp"
+    values:
+      layout: wiki
+  -
+    scope:
+      path: ""
+      type: "wiki-kr"
+    values:
+      layout: wiki

@@ -1,0 +1,36 @@
+<!-- Set this up later -->
+<!DOCTYPE html>
+<html lang="en">
+
+<!--==========Header==========-->
+{% include head.html %}
+
+<body data-scroll-animation="false">
+
+    <!--==========Navigation==========-->
+    <header class="row" id="header">
+      {% include nav.html %}
+    </header>
+
+    {% if page.url contains "scenario" %}
+    {% else %}
+      <section class="row page-header">
+          <div class="container">
+              <div class="row">
+                  <h1>{{ page.title }}</h1>
+                  <h4>{{ page.description }}</h4>
+              </div>
+          </div>
+      </section>
+    {% endif %}
+
+    {{ content }}
+
+    {% if page.url contains "scenario" %}
+    {% else %}
+
+    <!--==========Footer==========-->
+    {% include footer.html %}
+
+</body>
+</html>
