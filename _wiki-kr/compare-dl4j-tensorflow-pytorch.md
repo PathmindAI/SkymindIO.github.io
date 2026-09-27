@@ -190,5 +190,4 @@ Amazon의 Deep Scalable Sparse Tensor Network Engine ([DSSTNE](https://github.co
 * [Canova를 사용하여 맞춤형 데이터 파이프라인 구축](./image-data-pipeline)
 * [제한된 Boltzmann 기계](./restrictedboltzmannmachine)
 * [고유벡터(Eigenvectors), PCA 및 엔트로피](./eigenvector.html)
-* [딥러닝 용어집](./glossary.html)
 * [Word2vec, Doc2vec & GloVe](./word2vec)

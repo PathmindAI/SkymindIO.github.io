@@ -62,7 +62,7 @@ We'll describe the process of carrying memory forward mathematically:
 
 The hidden state at time step t is `h_t`. It is a function of the input at the same time step `x_t`, modified by a weight matrix `W` (like the one we used for feedforward nets) added to the hidden state of the previous time step `h_t-1` multiplied by its own hidden-state-to-hidden-state matrix `U`, otherwise known as a transition matrix and similar to a Markov chain. The weight matrices are filters that determine how much importance to accord to both the present input and the past hidden state. The error they generate will return via backpropagation and be used to adjust their weights until error can't go any lower.
 
-The sum of the weight input and hidden state is squashed by the function `φ` -- either a logistic sigmoid function or tanh, depending -- which is a standard tool for condensing very large or very small values into a logistic space, as well as making [gradients](./glossary#gradient) workable for backpropagation.
+The sum of the weight input and hidden state is squashed by the function `φ` -- either a logistic sigmoid function or tanh, depending -- which is a standard tool for condensing very large or very small values into a logistic space, as well as making gradients workable for backpropagation.
 
 Because this feedback loop occurs at every time step in the series, each hidden state contains traces not only of the previous hidden state, but also of all those that preceded `h_t-1` for as long as memory can persist.
 
@@ -184,7 +184,7 @@ Here are a few ideas to keep in mind when manually optimizing hyperparameters fo
 * In general, stacking layers can help.
 * For LSTMs, use the softsign (not softmax) activation function over tanh (it's faster and less prone to saturation (~0 gradients)).
 * Updaters: RMSProp, AdaGrad or momentum (Nesterovs) are usually good choices. AdaGrad also decays the learning rate, which can help sometimes.
-* Finally, remember data normalization, MSE loss function + identity activation function for regression, [Xavier weight initialization](./glossary#xavier)
+* Finally, remember data normalization, MSE loss function + identity activation function for regression, Xavier weight initialization
 
 ## <a name="resources">Resources</a>
 * [DRAW: A Recurrent Neural Network For Image Generation](http://arxiv.org/pdf/1502.04623v2.pdf); (attention models)

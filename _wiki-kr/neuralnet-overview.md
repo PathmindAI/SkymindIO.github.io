@@ -53,7 +53,7 @@ description: 인공 신경망 및 심층 신경망 소개
 
 ![Alt text](https://deeplearning4j.org/img/feature_hierarchy.png)
 
-이렇게 심층 신경망에서는 층마다 *다른 층위의 특징*이 학습이 됩니다. 낮은 층위의 특징은 단순하고 구체적이며 (예:이미지를 이루는 수평선, 수직선, 대각선) 높은 층위의 특징은 더욱 복잡하고 추상적입니다 (예:사람 모양, 자동차 모양, 고양이 모양, 얼굴 모양..). 이런 추상화 과정을 통해 심층 신경망이 아주 큰, 고차원의 데이터를 이해하며 이 과정은 수 억, 수 십억 개의 계수가 관여합니다. (이 과정에서 [비선형함수](./glossary.html#nonlineartransformfunction)를 사용합니다.)
+이렇게 심층 신경망에서는 층마다 *다른 층위의 특징*이 학습이 됩니다. 낮은 층위의 특징은 단순하고 구체적이며 (예:이미지를 이루는 수평선, 수직선, 대각선) 높은 층위의 특징은 더욱 복잡하고 추상적입니다 (예:사람 모양, 자동차 모양, 고양이 모양, 얼굴 모양..). 이런 추상화 과정을 통해 심층 신경망이 아주 큰, 고차원의 데이터를 이해하며 이 과정은 수 억, 수 십억 개의 계수가 관여합니다. (이 과정에서 비선형함수를 사용합니다.)
 
 또한 심층 신경망은 데이터를 이용해 데이터의 잠재적인 구조(latent structures)를 파악할 수 있습니다. 즉, 사진, 글, 비디오, 음성, 음악의 잠재적인 구조(어떤 물체가 사진에 있는지, 글의 내용과 감정이 무엇인지, 음성의 내용과 감정이 무엇인지 등)를 파악할 수 있습니다. 이를 통해 데이터가 라벨링되어있지 않아도 데이터간의 유사성을 효과적으로 파악할 수 있으며, 결과적으로 심층 신경망은 데이터 군집화에 아주 좋은 성능을 발휘합니다.
 
@@ -190,7 +190,6 @@ Gradient는 경사 혹은 기울기를 의미합니다. x-y 평면에서 기울�
 * [RNNs과 LSTMs](lstm)
 * [Word2vec과 자연어 처리](word2vec)
 * [Deeplearing4j 퀵 스타트 가이드 (Quick Start Guide)](quickstart)
-* [심층 신경망/인공 신경망 용어 사전](../glossary)
 * [Neural Networks Demystified](https://www.youtube.com/watch?v=bxe2T-V8XRs) (A seven-video series)
 * [A Neural Network in 11 Lines of Python](https://iamtrask.github.io/2015/07/12/basic-python-network/)
 * [A Step-by-Step Backpropagation Example](http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/)

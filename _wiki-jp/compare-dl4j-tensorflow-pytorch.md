@@ -178,5 +178,4 @@ Amazonの[DSSTNE](https://github.com/amznlabs/amazon-dsstne)（Deep Scalable Spa
 * [DataVecを使った Data Pipelineのカスタマイズ](image-data-pipeline)
 * [制限付きボルツマン・マシン](restrictedboltzmannmachine)
 * [固有ベクトル、PCA（主成分分析）、エントリピー](eigenvector.html)
-* [ディープラーニング用語集](glossary.html)
 * [Word2vec、Doc2vec、GloVe](word2vec)

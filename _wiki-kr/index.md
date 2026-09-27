@@ -14,8 +14,3 @@ Pathmind의 인공지능 wiki는 AI, 머신 러닝, 딥 러닝에서 중요한 �
 시작하기에 앞서 [artificial Intelligence, machine learning and deep learning](./ai-vs-machine-learning-vs-deep-learning)에 대한 비교 설명이나 인공지능 입문자를 위한 문서를 읽어보는 것을 추천한다.
 
 또한 주요 알고리즘인 [neural networks](neural-network), [reinforcement learning](./deep-reinforcement-learning), [LSTMs](./lstm), [convolutional networks (CNNs)](./convolutional-network) 또는 [generative adversarial networks(GANs)](./generative-adversarial-network-gan)에 대한 입문자용 포스팅뿐만 아니라 [eigenvectors](./eigenvector) 및 [Markov Chains](./markov-chain-monte-carlo)과 같이 널리 적용되는 수학적 개념을 정리한 포스팅을 참고하길 바란다.
-
-
-## 머신 러닝 용어사전
-
-AI와 머신 러닝에서 사용되는 용어를 정리해 놓은 초보자용 참고 자료인 [AI glossary](./glossary) 문서를 읽어 보기를 권장한다.

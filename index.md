@@ -16,7 +16,3 @@ The line between mathematics and philosophy is blurry when we talk about artific
 You might start by reading our comparison of [artificial Intelligence, machine learning and deep learning](ai-vs-machine-learning-vs-deep-learning).
 
 If you are curious about [neural networks](neural-network), [reinforcement learning](deep-reinforcement-learning), [LSTMs](lstm), [convolutional networks (CNNs)](convolutional-network) or [generative adversarial networks (GANs)](generative-adversarial-network-gan), we have devoted introductory posts to those popular algorithms, as well as more widely applicable mathematical concepts like [eigenvectors](eigenvector) and [Markov Chains](markov-chain-monte-carlo).
-
-## Machine Learning Glossary
-
-As you read the articles, please refer to our [AI glossary](./glossary) for definitions of many of the terms used in artificial intelligence and machine learning.

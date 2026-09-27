@@ -30,7 +30,7 @@ RBMs are shallow, two-layer neural nets that constitute the building blocks of *
 
 Each circle in the graph above represents a neuron-like unit called a *node*, and nodes are simply where calculations take place. The nodes are connected to each other across layers, but no two nodes of the same layer are linked.
 
-That is, there is no intra-layer communication – this is the *restriction* in a restricted Boltzmann machine. Each node is a locus of computation that processes input, and begins by making [stochastic](glossary#stochasticgradientdescent) decisions about whether to transmit that input or not. (*Stochastic* means “randomly determined”, and in this case, the coefficients that modify inputs are randomly initialized.)
+That is, there is no intra-layer communication – this is the *restriction* in a restricted Boltzmann machine. Each node is a locus of computation that processes input, and begins by making stochastic decisions about whether to transmit that input or not. (*Stochastic* means “randomly determined”, and in this case, the coefficients that modify inputs are randomly initialized.)
 
 Each visible node takes a low-level feature from an item in the dataset to be learned. For example, from a dataset of grayscale images, each visible node would receive one pixel-value for each pixel in one image. (MNIST images have 784 pixels, so neural nets processing them must have 784 input nodes on the visible layer.)
 
@@ -140,7 +140,7 @@ For those interested in studying the structure of RBMs in greater depth, they ar
 
 ## <a name="params">Parameters & k</a>
 
-The variable `k` is the number of times you run [contrastive divergence](glossary#contrastivedivergence). Contrastive divergence is the method used to calculate the gradient (the slope representing the relationship between a network's weights and its error), without which no learning can occur.
+The variable `k` is the number of times you run contrastive divergence. Contrastive divergence is the method used to calculate the gradient (the slope representing the relationship between a network's weights and its error), without which no learning can occur.
 
 Each time contrastive divergence is run, it's a sample of the Markov Chain composing the restricted Boltzmann machine. A typical value is 1.
 
@@ -178,7 +178,7 @@ Gaussian transformations do not work well on RBMs' hidden layers. The rectified-
 
 You can interpret RBMs' output numbers as percentages. Every time the number in the reconstruction is *not zero*, that's a good indication the RBM learned the input.
 
-It should be noted that RBMs do not produce the most stable, consistent results of all shallow, feedforward networks. In many situations, a dense-layer [autoencoder](glossary#autoencoder) works better. Indeed, the industry is moving toward tools such as [variational autoencoders and GANs](generative-adversarial-network-gan).
+It should be noted that RBMs do not produce the most stable, consistent results of all shallow, feedforward networks. In many situations, a dense-layer autoencoder works better. Indeed, the industry is moving toward tools such as [variational autoencoders and GANs](generative-adversarial-network-gan).
 
 ### <a name="resources">Other Resources</a>
 

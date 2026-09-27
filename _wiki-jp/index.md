@@ -10,8 +10,4 @@ Much of modern AI has been developed through numerous advances in machine learni
 
 ## Getting Started
 
-One of the best places to start is by reading our comparison of [AI vs. ML vs. DL](./ai-vs-machine-learning-vs-deep-learning). If you can't describe a [neural network](neural-network) this is an excellent starting topic.
-
-## Glossary
-
-Read the [glossary](./glossary) for a beginner's reference to many of the terms used in AI and machine learning. -->
+One of the best places to start is by reading our comparison of [AI vs. ML vs. DL](./ai-vs-machine-learning-vs-deep-learning). If you can't describe a [neural network](neural-network) this is an excellent starting topic. -->

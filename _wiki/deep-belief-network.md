@@ -6,7 +6,7 @@ description: A stacked multilayer network of Restricted Boltzmann Machines.
 
 A deep-belief network can be defined as a stack of [restricted Boltzmann machines](./restricted-boltzmann-machine), in which each RBM layer communicates with both the previous and subsequent layers. The nodes of any single layer don't communicate with each other laterally. 
 
-This stack of RBMs might end with a a [Softmax](./glossary#softmax) layer to create a classifier, or it may simply help cluster unlabeled data in an unsupervised learning scenario. 
+This stack of RBMs might end with a a Softmax layer to create a classifier, or it may simply help cluster unlabeled data in an unsupervised learning scenario.
 
 With the exception of the first and final layers, each layer in a deep-belief network has a double role: it serves as the hidden layer to the nodes that come before it, and as the input (or "visible") layer to the nodes that come after. It is a network built of single-layer networks. 
 
@@ -18,4 +18,4 @@ MNIST is a good place to begin exploring image recognition and DBNs. The first s
 
 ### Hyperparameters
 
-The variable k represents the number of times you run [contrastive divergence](./glossary#contrastivedivergence). Each time contrastive divergence is run, it's a sample of the Markov chain. In composing a deep-belief network, a typical value is `1`.
+The variable k represents the number of times you run contrastive divergence. Each time contrastive divergence is run, it's a sample of the Markov chain. In composing a deep-belief network, a typical value is `1`.

@@ -103,7 +103,7 @@ GANs take a long time to train. On a single GPU a GAN might take hours, and on a
 
 ## Other Generative Models
 
-GANs are not the only generative models based on deep learning. The Microsoft-backed think tank OpenAI has released a series of powerful [natural language](http://wiki.pathmind.com/natural-language-processing-nlp) generation models under the name GPT (Generative Pre-trained Transformer). In 2020, they released GPT-3 and made it accessible through an [API](https://openai.com/blog/openai-api/). GPT-3 is a surprisingly powerful generative language model capable of emulating net new human speech in response to prompts. 
+GANs are not the only generative models based on deep learning. The Microsoft-backed think tank OpenAI has released a series of powerful natural language generation models under the name GPT (Generative Pre-trained Transformer). In 2020, they released GPT-3 and made it accessible through an [API](https://openai.com/blog/openai-api/). GPT-3 is a surprisingly powerful generative language model capable of emulating net new human speech in response to prompts.
 
 Creating net new human speech is a core component of interactive, natural language dialog systems, but up until now, it has been very challenging to do well. Our new model, GPT-3, breaks new ground on this task, requiring only examples of the desired output to train a system capable of emulating. << *This paragraph was writting by GPT-3 itself in response to the last sentence of the previous paragraph. It's pretty good.*
 
