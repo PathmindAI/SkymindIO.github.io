@@ -10,7 +10,7 @@ layout: reader-base
       <summary>Browse the wiki <span aria-hidden="true">+</span></summary>
       <div class="article-browser-content">
         <label for="wiki-search-input" class="search-label">Search articles</label>
-        <input id="wiki-search-input" type="search" placeholder="Search titles and text…" autocomplete="off" aria-controls="wiki-links-ul wiki-search-results" data-search-index="/search-{% if page.collection == 'wiki-jp' %}ja{% elsif page.collection == 'wiki-kr' %}ko{% else %}en{% endif %}.json">
+        <input id="wiki-search-input" type="search" placeholder="Search titles and text…" autocomplete="off" aria-controls="wiki-links-ul wiki-search-results" data-search-index="/search-{% if page.collection == 'wiki-jp' %}ja{% elsif page.collection == 'wiki-kr' %}ko{% else %}en{% endif %}.json?v={{ site.time | date: '%s' }}">
         <p class="search-status" role="status" aria-live="polite" hidden></p>
         <nav class="topic-navigation" aria-label="Topics">
           <ul id="wiki-links-ul">
