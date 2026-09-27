@@ -10,22 +10,20 @@ Contents
 * <a href="#define">Neural Network Definition</a>
 * <a href="#concrete">A Few Concrete Examples</a>
 * <a href="#element">Neural Network Elements</a>
-* <a href="#concept">Key Concepts of Deep Neural Networks</a>
-* <a href="#forward">Example: Feedforward Networks & Backpropagation</a>
+* <a href="#deep-learning">What Makes Learning Deep?</a>
+* <a href="#forward">Example: Feedforward Networks</a>
 * <a href="#regression">Multiple Linear Regression</a>
+* <a href="#activations">Activation Functions</a>
+* <a href="#crop-yield">Crop Yield Through Two Hidden Layers</a>
 * <a href="#gradient">Gradient Descent</a>
 * <a href="#logistic">Logistic Regression & Classifiers</a>
 * <a href="#ai">Neural Networks & Artificial Intelligence</a>
-* <a href="#updaters">Updaters</a>
-* <a href="#custom">Custom Layers, activation functions and loss functions</a>
 
 ## <a name="define">Neural Network Definition</a>
 
-Neural networks are a set of algorithms, modeled loosely after the human brain, that are designed to recognize patterns. They interpret sensory data through a kind of machine perception, labeling or clustering raw input. The patterns they recognize are numerical, contained in vectors, into which all real-world data, be it images, sound, text or time series, must be translated.
+A neural network is a model that learns to transform numerical inputs into useful outputs by adjusting weights and biases. For an image, the inputs might be pixel values; for a crop, they might describe fertilizer and weather. Its output could be a category probability or a continuous prediction such as yield.
 
-Neural networks help us cluster and classify. You can think of them as a clustering and classification layer on top of the data you store and manage. They help to group unlabeled data according to similarities among the example inputs, and they classify data when they have a [labeled dataset to train on](./supervised-learning). (Neural networks can also extract features that are fed to other algorithms for clustering and classification; so you can think of deep neural networks as components of larger machine-learning applications involving algorithms for [reinforcement learning](./deep-reinforcement-learning), classification and [regression](./logistic-regression).)
-
-Artificial neural networks are the foundation of large-language models (LLMs) used by [chatGPT](https://chat.openai.com/), [Microsoft's Bing](https://www.bing.com/), Google's Bard and [Meta's Llama](https://github.com/facebookresearch/llama), among others.
+The intermediate layers learn representations, sets of features computed from the input. Those features can support [classification](./supervised-learning), [regression](#multiple), or another algorithm that groups similar examples. The training objective determines which features the network has an incentive to learn.
 
 What kind of problems does deep learning solve, and more importantly, can it solve yours? To know the answer, you need to ask a few questions:
 
@@ -35,11 +33,11 @@ What kind of problems does deep learning solve, and more importantly, can it sol
 
 ## <a name="concrete">A Few Concrete Examples</a>
 
-Deep learning maps inputs to outputs. It finds correlations. It is known as a "universal approximator", because it can learn to approximate an unknown function `f(x) = y` between any input `x` and any output `y`, assuming they are related at all (by correlation or causation, for example). In the process of learning, a neural network finds the right `f`, or the correct manner of transforming `x` into `y`, whether that be `f(x) = 3x + 12` or `f(x) = 9x - 0.1`. Here are a few examples of what deep learning can do.
+A neural network learns a mapping from inputs to outputs. The examples below differ in what those outputs represent and in how we measure whether they are useful.
 
 ### Classification
 
-All classification tasks depend upon labeled datasets; that is, humans must transfer their knowledge to the dataset in order for a neural network to learn the correlation between labels and data. This is known as *[supervised learning](./supervised-learning)*.
+In supervised classification, training examples pair inputs with category labels. Labels can come from human annotation or recorded outcomes. The network learns to assign probabilities to those categories. See [supervised learning](./supervised-learning).
 
 * Detect faces, identify people in images, recognize facial expressions (angry, joyful)
 * Identify objects in images (stop signs, pedestrians, lane markers...)
@@ -47,175 +45,190 @@ All classification tasks depend upon labeled datasets; that is, humans must tran
 * Detect voices, identify speakers, transcribe speech to text, recognize sentiment in voices
 * Classify text as spam (in emails), or fraudulent (in insurance claims); recognize sentiment in text (customer feedback)
 
-Any labels that humans can generate, any outcomes that you care about and which correlate to data, can be used to train a neural network.
+Whether these predictions are useful depends on the quality of the labels and how well the training examples represent the conditions where the model will be used.
 
 ### Clustering
 
-Clustering or grouping is the detection of similarities. Deep learning does not require labels to detect similarities. Learning without labels is called *[unsupervised learning](./unsupervised-learning)*. Unlabeled data is the majority of data in the world. One law of machine learning is: the more data an algorithm can train on, the more accurate it will be. Therefore, unsupervised learning has the potential to produce highly accurate models.
+Clustering groups examples according to a measure of similarity. A neural network can learn numerical representations that a clustering algorithm then uses to group related images or documents. [Unsupervised learning](./unsupervised-learning) learns from data without supplied target labels; the choice of objective still determines what kinds of similarity a representation captures.
 
 * Search: Comparing documents, images or sounds to surface similar items.
 * Anomaly detection: The flipside of detecting similarities is detecting anomalies, or unusual behavior. In many cases, unusual behavior correlates highly with things you want to detect and prevent, such as fraud.
 
-### Predictive Analytics: Regressions
+### Regression: Predicting a Quantity
 
-With classification, deep learning is able to establish correlations between, say, pixels in an image and the name of a person. You might call this a static prediction. By the same token, exposed to enough of the right data, deep learning is able to establish correlations between present events and future events. It can run regression between the past and the future. The future event is like the label in a sense. Deep learning doesn't necessarily care about time, or the fact that something hasn't happened yet. Given a time series, deep learning may read a string of number and predict the number most likely to occur next.
+Regression predicts a continuous value, such as a crop's yield or a building's electricity consumption. Forecasting applies such a prediction to a future observation. The distinction between regression and classification is the kind of target, rather than whether the prediction concerns the future.
 
-* Hardware breakdowns (data centers, manufacturing, transport)
-* Health breakdowns (strokes, heart attacks based on vital stats and data from wearables)
-* Customer churn (predicting the likelihood that a customer will leave, based on web activity and metadata)
-* Employee turnover (ditto, but for employees)
-
-The better we can predict, the better we can prevent and pre-empt. As you can see, with neural networks, we're moving towards a world of fewer surprises. Not zero surprises, just marginally fewer. We're also moving toward a world of smarter agents that combine neural networks with other algorithms like [reinforcement learning](./deep-reinforcement-learning) to attain goals.
-
-With that brief overview of deep learning use cases, let's look at what neural nets are made of.
+The crop example below uses fertilizer, sunlight and rainfall to predict tonnes harvested per hectare. Its final layer produces a number in those units.
 
 ## <a name="element">Neural Network Elements</a>
 
-Deep learning is the name we use for "stacked neural networks"; that is, networks composed of several layers.
+A layer contains units, also called nodes. In a dense layer, each unit multiplies its input values by weights, adds the products and a bias, then applies an activation function. The bias provides an adjustable offset; the activation determines how the summed signal is transformed.
 
-The layers are made of *nodes*. A node is just a place where computation happens, loosely patterned on a neuron in the human brain, which fires when it encounters sufficient stimuli. A node combines input from the data with a set of coefficients, or weights, that either amplify or dampen that input, thereby assigning significance to inputs with regard to the task the algorithm is trying to learn; e.g. which input is most helpful is classifying data without error? These input-weight products are summed and then the sum is passed through a node's so-called activation function, to determine whether and to what extent that signal should progress further through the network to affect the ultimate outcome, say, an act of classification. If the signals passes through, the neuron has been "activated."
+![A neural-network unit combines weighted inputs and applies an activation.](/images/wiki/perceptron_node.png)
 
-Here's a diagram of what one node might look like.
+An activation can produce a continuous value. A layer collects its units' activations into a vector that becomes the next layer's input. The [dense-layer definition](https://keras.io/api/layers/core_layers/dense/) formalizes this calculation.
 
-![perceptron node](/images/wiki/perceptron_node.png)
+![A multilayer perceptron connects inputs through hidden layers to outputs.](/images/wiki/mlp.png)
 
-A node layer is a row of those neuron-like switches that turn on or off as the input is fed through the net. Each layer's output is simultaneously the subsequent layer's input, starting from an initial input layer receiving your data.  
+Training adjusts the weights and biases so that these intermediate representations help reduce the chosen loss. A unit's coefficients control how its inputs contribute to the weighted sum.
 
-![multilayer perceptron](/images/wiki/mlp.png)
+## <a name="concept"></a><a id="deep-learning">What Makes Learning Deep?</a>
 
-Pairing the model's adjustable weights with input features is how we assign significance to those features with regard to how the neural network classifies and clusters input.
+Deep learning trains neural networks with multiple layers of learned representations. Each layer transforms the preceding layer's output, giving the next layer a different description of the same input. The intermediate layers are called hidden layers because their values are computed inside the network, between its inputs and final output.
 
-## <a name="concept">Key Concepts of Deep Neural Networks</a>
+In an image model, early layers may respond to edges. Later layers can combine those responses into shapes useful for recognizing an object. This is a **feature hierarchy**: the network builds representations from other representations. Training adjusts the weights that create them, often across the whole network together.
 
-Deep-learning networks are distinguished from the more commonplace single-hidden-layer neural networks by their **depth**; that is, the number of node layers through which data must pass in a multistep process of pattern recognition.
+Depth describes the succession of transformations along a path through the network. Width describes how many units a layer contains. A network with two hidden layers is a small example of deep learning; the crop-yield calculation below follows every value through one. Adding layers gives the model more stages for combining features, while also creating more computations to train and check against new data.
 
-Earlier versions of neural networks such as the first [perceptrons](./multilayer-perceptron) were shallow, composed of one input and one output layer, and at most one hidden layer in between. More than three layers (including input and output) qualifies as "deep" learning. So *deep* is not just a buzzword to make algorithms seem like they read Sartre and listen to bands you haven't heard of yet. It is a strictly defined term that means more than one hidden layer.
+Architecture names describe different choices. [Convolutional networks](./convolutional-network) apply shared filters across local regions. [Recurrent networks](./lstm#recurrent) carry state through a sequence. [Autoencoders](./deep-autoencoder) learn representations by reconstructing inputs. These categories overlap: an autoencoder can use convolutional layers, and a model can combine convolutional and recurrent components.
 
-In deep-learning networks, each layer of nodes trains on a distinct set of features based on the previous layer's output. The further you advance into the neural net, the more complex the features your nodes can recognize, since they aggregate and recombine features from the previous layer.
+A historical milestone was the 2006 paper [*A Fast Learning Algorithm for Deep Belief Nets*](https://www.cs.toronto.edu/~hinton/absps/fastnc.pdf), by Geoffrey Hinton, Simon Osindero and Yee-Whye Teh. It described learning layers successively to initialize a deep belief network before further training.
 
-![feature hierarchy](/images/wiki/feature_hierarchy.png)
+![An image feature hierarchy combines local patterns into representations useful for recognition.](/images/wiki/feature_hierarchy.png)
 
-This is known as **feature hierarchy**, and it is a hierarchy of increasing complexity and abstraction. It makes deep-learning networks capable of handling very large, high-dimensional data sets with billions of parameters that pass through nonlinear functions.
+### <a id="learning-objectives">What the Network Learns to Do</a>
 
-Above all, these neural nets are capable of discovering latent structures within **unlabeled, unstructured data**, which is the vast majority of data in the world. Another word for unstructured data is *raw media*; i.e. pictures, texts, video and audio recordings. Therefore, one of the problems deep learning solves best is in processing and clustering the world's raw, unlabeled media, discerning similarities and anomalies in data that no human has organized in a relational database or ever put a name to.
+The training objective specifies what counts as a useful result. A crop-yield model can minimize the difference between predicted and observed harvests. A classifier can minimize a loss based on the probability assigned to the correct category. An autoencoder compares a reconstruction with its input; a next-character model learns to predict a target drawn from the text itself.
 
-For example, deep learning can take a million images, and cluster them according to their similarities: cats in one corner, ice breakers in another, and in a third all the photos of your grandmother. This is the basis of so-called smart photo albums.
+Those objectives produce different learning signals. Reconstruction is one way to train a representation. Other methods learn from category labels or from relationships within the data. Hidden layers are trained according to how their computations contribute to the network's objective.
 
-Now apply that same idea to other data types: Deep learning might cluster raw text such as emails or news articles. Emails full of angry complaints might cluster in one corner of the vector space, while satisfied customers, or spambot messages, might cluster in others. This is the basis of various messaging filters, and can be used in customer-relationship management (CRM). The same applies to voice messages.
+The output layer must suit that objective. Here are common choices:
 
-With time series, data might cluster around normal/healthy behavior and anomalous/dangerous behavior. If the time series data is being generated by a smart phone, it will provide insight into users' health and habits; if it is being generated by an autopart, it might be used to prevent catastrophic breakdowns.  
+| Task | Output | Example loss |
+| --- | --- | --- |
+| Predict a continuous quantity | A value from a linear output layer | Squared error |
+| Predict one of two categories | A sigmoid probability | Binary cross-entropy |
+| Predict one of several mutually exclusive categories | A softmax probability distribution | Categorical cross-entropy |
 
-Deep-learning networks perform **automatic feature extraction** without human intervention, unlike most traditional machine-learning algorithms. Given that feature extraction is a task that can take teams of data scientists years to accomplish, deep learning is a way to circumvent the chokepoint of limited experts. It augments the powers of small data science teams, which by their nature do not scale.
-
-When training on unlabeled data, each node layer in a deep network learns features automatically by repeatedly trying to reconstruct the input from which it draws its samples, attempting to minimize the difference between the network's guesses and the probability distribution of the input data itself. Restricted Boltzmann machines, for examples, create so-called reconstructions in this manner.  
-
-In the process, these neural networks learn to recognize correlations between certain relevant features and optimal results -- they draw connections between feature signals and what those features represent, whether it be a full reconstruction, or with labeled data.
-
-A deep-learning network trained on labeled data can then be applied to unstructured data, giving it access to much more input than machine-learning nets. This is a recipe for higher performance: the more data a net can train on, the more accurate it is likely to be. (Bad algorithms trained on lots of data can outperform good algorithms trained on very little.) Deep learning's ability to process and learn from huge quantities of unlabeled data give it a distinct advantage over previous algorithms.
-
-Deep-learning networks end in an output layer: a logistic, or softmax, classifier that assigns a likelihood to a particular outcome or label. We call that predictive, but it is predictive in a broad sense. Given raw data in the form of an image, a deep-learning network may decide, for example, that the input data is 90 percent likely to represent a person.
+Learning features reduces the need to specify every useful pattern by hand. It still requires choosing an objective and suitable data, then evaluating the model on examples withheld from training.
 
 ## <a name="forward">Example: Feedforward Networks</a>
 
-Our goal in using a neural net is to arrive at the point of least error as fast as possible. We are running a race, and the race is around a track, so we pass the same points repeatedly in a loop. The starting line for the race is the state in which our weights are initialized, and the finish line is the state of those parameters when they are capable of producing sufficiently accurate classifications and predictions.
+A feedforward network computes its prediction by passing an input through successive layers. During training, we compare that prediction with a target and calculate a loss, a number that measures the mismatch. Backpropagation calculates how the loss changes with each parameter; an optimizer uses those derivatives to update the parameters.
 
-The race itself involves many steps, and each of those steps resembles the steps before and after. Just like a runner, we will engage in a repetitive act over and over to arrive at the finish. Each step for a neural network involves a guess, an error measurement and a slight update in its weights, an incremental adjustment to the coefficients, as it slowly learns [to pay attention](./attention-mechanism-memory-network) to the most important features.
+We can follow the forward calculation before considering an update. The crop example begins with a familiar statistical model, then adds hidden layers.
 
-A collection of weights, whether they are in their start or end state, is also called a model, because it is an attempt to model data's relationship to ground-truth labels, to grasp the data's structure. Models normally start out bad and end up less bad, changing over time as the neural network updates its parameters.
+### <a name="multiple"></a><a id="regression">Multiple Linear Regression</a>
 
-This is because a neural network is born in ignorance. It does not know which weights and biases will translate the input best to make the correct guesses. It has to start out with a guess, and then try to make better guesses sequentially as it learns from its mistakes. (You can think of a neural network as a miniature enactment of the scientific method, testing hypotheses and trying again -- only it is the scientific method with a blindfold on. Or like a child: they are born not knowing much, and through exposure to life experience, they slowly learn to solve problems in the world. For neural networks, data is the only experience.)
+A linear regression with one input has the form `y_hat = w*x + b`. For a crop, `x` might be fertilizer applied and `y_hat` the predicted yield. The coefficient `w` determines how the prediction changes as fertilizer increases, while the bias `b` sets its value when `x` is zero.
 
-Here is a simple explanation of what happens during learning with a feedforward neural network, the simplest architecture to explain.
+Adding sunlight and rainfall gives a multiple linear regression:
 
-Input enters the network. The coefficients, or weights, map that input to a set of guesses the network makes at the end.
+```text
+y_hat = w_f*fertilizer + w_s*sunlight + w_r*rainfall + b
+```
 
-    input * weight = guess
+This model gives each input a fixed coefficient. A dense neural-network layer performs a weighted sum and adds a bias at each unit, then applies an **activation function** to the result. The [Keras Dense-layer reference](https://keras.io/api/layers/core_layers/dense/) describes this operation. A hidden unit's output becomes an input to the next layer.
 
-Weighted input results in a guess about what that input is. The neural then takes its guess and compares it to a ground-truth about the data, effectively asking an expert "Did I get this right?"
+### <a id="activations">Why Add an Activation Function?</a>
 
-    ground truth - guess = error
+Stacking weighted sums and biases without nonlinear activations still gives one affine transformation, a weighted sum with an offset. For two layers, expanding `W2*(W1*x + b1) + b2` gives `(W2*W1)*x + (W2*b1 + b2)`. The two stages collapse into one.
 
-The difference between the network's guess and the ground truth is its *error*. The network measures that error, and walks the error back over its model, adjusting weights to the extent that they contributed to the error.
+A nonlinear activation lets successive layers represent relationships that a single affine transformation cannot. Activations transform numerical values, and their output ranges depend on the function. The [Keras activation reference](https://keras.io/api/layers/activations/) defines these functions:
 
-    error * weight's contribution to error = adjustment
+| Activation | Operation | Output range |
+| --- | --- | --- |
+| ReLU | `max(z, 0)` | Zero and positive values, with no upper limit |
+| Sigmoid | `1 / (1 + exp(-z))` | Between 0 and 1 |
+| Tanh | Hyperbolic tangent of `z` | Between -1 and 1 |
+| Hard tanh | Clip `z` below -1 or above 1 | From -1 to 1, including the endpoints |
 
-The three pseudo-mathematical formulas above account for the three key functions of neural networks: scoring input, calculating loss and applying an update to the model -- to begin the three-step process over again. A neural network is a corrective feedback loop, rewarding weights that support its correct guesses, and punishing weights that lead it to err.
+For example, ReLU maps `-2` to `0` and leaves `3` as `3`. We will use it after each hidden layer. The output layer will leave its weighted sum unchanged so that the network produces a continuous yield estimate.
 
-Let's linger on the first step above.
+### <a id="crop-yield">Crop Yield Through Two Hidden Layers</a>
 
-### <a name="multiple">Multiple Linear Regression</a>
+Suppose fertilizer, sunlight and rainfall have been rescaled into numerical features, in that order. Our example input is `x = [2, 1, 3]`. These feature values are dimensionless; the output is a yield in tonnes per hectare.
 
-Despite their biologically inspired name, artificial neural networks are nothing more than math and code, like any other machine-learning algorithm. In fact, anyone who understands *linear regression*, one of first methods you learn in statistics, can understand how a neural net works. In its simplest form, linear regression is expressed as
+We will choose the weights and biases by hand to make the arithmetic visible. They illustrate a network calculation and have not been fitted to agricultural data. The network has three input features, two units in each of two hidden layers, and one output:
 
-        Y_hat = bX + a
+```text
+3 inputs → 2 hidden units → 2 hidden units → 1 yield prediction
+```
 
-where `Y_hat` is the estimated output, `X` is the input, `b` is the slope and `a` is the intercept of a line on the vertical axis of a two-dimensional graph. (To make this more concrete: `X` could be radiation exposure and `Y` could be the cancer risk; `X` could be daily pushups and `Y_hat` could be the total weight you can benchpress; `X` the amount of fertilizer and `Y_hat` the size of the crop.) You can imagine that every time you add a unit to `X`, the dependent variable `Y_hat` increases proportionally, no matter how far along you are on the X axis. That simple relation between two variables moving up or down together is a starting point.
+Treat `x` as a column vector with shape `(3, 1)`. A row in each weight matrix supplies the weights for one unit. The biases and hidden activations are also column vectors; compact lists below show their entries.
 
-The next step is to imagine multiple linear regression, where you have many input variables producing an output variable. It's typically expressed like this:
+```text
+W1 = [[ 1, 0, 1],     shape: (2, 3)
+      [-1, 1, 0]]
+b1 = [-1, 0]          shape: (2, 1)
 
-        Y_hat = b_1*X_1 + b_2*X_2 + b_3*X_3 + a
+W2 = [[0.5,  1],      shape: (2, 2)
+      [  1, -1]]
+b2 = [-1, -2]         shape: (2, 1)
 
-(To extend the crop example above, you might add the amount of sunlight and rainfall in a growing season to the fertilizer variable, with all three affecting `Y_hat`.)
+W3 = [[2, 1.5]]       shape: (1, 2)
+b3 = 1                one output bias
+```
 
-Now, that form of multiple linear regression is happening at every node of a neural network. For each node of a single layer, input from each node of the previous layer is recombined with input from every other node. That is, the inputs are mixed in different proportions, according to their coefficients, which are different leading into each node of the subsequent layer. In this way, a net tests which combination of input is significant as it tries to reduce error.
+The first hidden layer computes two weighted sums. Component indices start at zero, as in the Python code below:
 
-Once you sum your node inputs to arrive at `Y_hat`, it's passed through a non-linear function. Here's why: If every node merely performed multiple linear regression, `Y_hat` would increase linearly and without limit as the X's increase, but that doesn't suit our purposes.
+```text
+z1[0] =  1*2 + 0*1 + 1*3 - 1 =  4
+z1[1] = -1*2 + 1*1 + 0*3 + 0 = -1
+h1 = ReLU(z1) = [4, 0]           shape: (2, 1)
+```
 
-What we are trying to build at each node is a switch (like a neuron...) that turns on and off, depending on whether or not it should let the signal of the input pass through to affect the ultimate decisions of the network.
+The second hidden layer receives `[4, 0]`:
 
-When you have a switch, you have a classification problem. Does the input's signal indicate the node should classify it as enough, or not_enough, on or off? A binary decision can be expressed by 1 and 0, and [logistic regression](#logistic) is a non-linear function that squashes input to translate it to a space between 0 and 1.
+```text
+z2[0] = 0.5*4 + 1*0 - 1 = 1
+z2[1] =   1*4 - 1*0 - 2 = 2
+h2 = ReLU(z2) = [1, 2]      shape: (2, 1)
+```
 
-The nonlinear transforms at each node are usually s-shaped functions similar to logistic regression. They go by the names of sigmoid (the Greek word for "S"), tanh, hard tanh, etc., and they shaping the output of each node. The output of all nodes, each squashed into an s-shaped space between 0 and 1, is then passed as input to the next layer in a feed forward neural network, and so on until the signal reaches the final layer of the net, where decisions are made.
+The output layer combines those two values:
+
+```text
+y_hat = 2*1 + 1.5*2 + 1 = 6 tonnes per hectare
+```
+
+The chosen weights suppress the first layer's second unit for this input. A different input can change which ReLU units pass a positive value.
+
+This Python code reproduces the calculation using only the standard library. It stores vectors as flat lists and weight matrices as lists of rows.
+
+```python
+def dense(inputs, weights, biases):
+    return [sum(w * x for w, x in zip(row, inputs)) + bias
+            for row, bias in zip(weights, biases)]
+
+
+def relu(values):
+    return [max(0.0, value) for value in values]
+
+
+x = [2.0, 1.0, 3.0]
+z1 = dense(x, [[1, 0, 1], [-1, 1, 0]], [-1, 0])
+h1 = relu(z1)
+z2 = dense(h1, [[0.5, 1], [1, -1]], [-1, -2])
+h2 = relu(z2)
+y_hat = dense(h2, [[2, 1.5]], [1])[0]
+
+print("First layer:", z1, "->", h1)
+print("Second layer:", z2, "->", h2)
+print("Predicted yield:", y_hat, "tonnes per hectare")
+```
 
 ### <a name="gradient">Gradient Descent</a>
 
-The name for one commonly used optimization function that adjusts weights according to the error they caused is called "gradient descent."
+Suppose the observed yield for this example was `5` tonnes per hectare. The prediction is too high by `1`, and its squared-error loss is `(6 - 5)^2 = 1`. The gradient tells us how that loss would change if we changed a parameter slightly.
 
-Gradient is another word for slope, and slope, in its typical form on an x-y graph, represents how two variables relate to each other: rise over run, the change in money over the change in time, etc. In this particular case, the slope we care about describes the relationship between the network's error and a single weight; i.e. that is, how does the error vary as the weight is adjusted.
+For the output weight multiplying the first component of `h2`, call it `w`, the derivative is:
 
-To put a finer point on it, which weight will produce the least error? Which one correctly represents the signals contained in the input data, and translates them to a correct classification? Which one can hear "nose" in an input image, and know that should be labeled as a face and not a frying pan?
+```text
+dLoss/dw = 2*(y_hat - y)*h2[0] = 2*(6 - 5)*1 = 2
+```
 
-As a neural network learns, it slowly adjusts many weights so that they can map signal to meaning correctly. The relationship between network *Error* and each of those *weights* is a derivative, *dE/dw*, that measures the degree to which a slight change in a weight causes a slight change in the error.
+A gradient-descent step with learning rate `0.1` subtracts `0.1*2` from that weight, changing it from `2` to `1.8`. Holding the other parameters fixed, the prediction becomes `1.8*1 + 1.5*2 + 1 = 5.8`, and the loss falls to `0.64`.
 
-Each weight is just one factor in a deep network that involves many transforms; the signal of the weight passes through activations and sums over several layers, so we use the [chain rule of calculus](https://en.wikipedia.org/wiki/Chain_rule) to march back through the networks activations and outputs and finally arrive at the weight in question, and its relationship to overall error.
+In ordinary training, backpropagation uses the chain rule to calculate gradients for parameters throughout the network. An optimizer updates the trainable parameters using losses over a batch of examples, then repeats the forward calculation. We use validation data to choose settings and decide when to stop, and reserve test data to evaluate predictions on new harvests.
 
-The chain rule in calculus states that
+## <a name="logistic">Logistic Regression and Classification Outputs</a>
 
-![chain rule](/images/wiki/chain_rule.png)
+The crop model ends in a continuous prediction. For binary classification, we can instead apply a sigmoid to the output score `z`, giving `p = 1 / (1 + exp(-z))`. The score includes a weighted sum of features and a bias. As it rises, the estimated probability of the positive class approaches 1; as it falls, that probability approaches 0.
 
-In a feedforward network, the relationship between the net's error and a single weight will look something like this:
+A probability and a class decision are separate quantities. A model might estimate a `0.8` probability that an email is spam. A threshold of `0.5` would classify it as spam; changing the threshold changes which emails get flagged. Choose that threshold on validation data with the cost of false alarms and missed spam in mind. The [logistic regression guide](./logistic-regression) develops this calculation.
 
-![backprop chain rule](/images/wiki/backprop_chain_rule.png)
-
-That is, given two variables, *Error* and *weight*, that are mediated by a third variable, *activation*, through which the weight is passed, you can calculate how a change in *weight* affects a change in *Error* by first calculating how a change in *activation* affects a change in *Error*, and how a change in *weight* affects a change in *activation*.  
-
-The essence of learning in deep learning is nothing more than that: adjusting a model's weights in response to the error it produces, until you can't reduce the error any more.
-
-## <a name="logistic">Logistic Regression</a>
-
-On a deep neural network of many layers, the final layer has a particular role. When dealing with labeled input, the output layer classifies each example, applying the most likely label. Each node on the output layer represents one label, and that node turns on or off according to the strength of the signal it receives from the previous layer's input and parameters.
-
-Each output node produces two possible outcomes, the binary output values 0 or 1, because [an input variable either deserves a label or it does not](https://en.wikipedia.org/wiki/Law_of_excluded_middle){:target="_blank"}. After all, there is no such thing as a little pregnant.
-
-While neural networks working with labeled data produce binary output, the input they receive is often continuous. That is, the signals that the network receives as input will span a range of values and include any number of metrics, depending on the problem it seeks to solve.
-
-For example, a recommendation engine has to make a binary decision about whether to serve an ad or not. But the input it bases its decision on could include how much a customer has spent on Amazon in the last week, or how often that customer visits the site.
-
-So the output layer has to condense signals such as $67.59 spent on diapers, and 15 visits to a website, into a range between 0 and 1; i.e. a probability that a given input should be labeled or not.
-
-The mechanism we use to convert continuous signals into binary output is called [logistic regression](./logistic-regression). The name is unfortunate, since logistic regression is used for classification rather than regression in the linear sense that most people are familiar with. It calculates the probability that a set of inputs match the label.  
-
-![logistic regression](/images/wiki/logistic_regression.png)
-
-Let's examine this little formula.
-
-For continuous inputs to be expressed as probabilities, they must output positive results, since there is no such thing as a negative probability. That's why you see input as the exponent of *e* in the denominator -- because exponents force our results to be greater than zero. Now consider the relationship of *e*'s exponent to the fraction 1/1. One, as we know, is the ceiling of a probability, beyond which our results can't go without being absurd. (We're 120% sure of that.)
-
-As the input *x* that triggers a label grows, the expression *e to the x* shrinks toward zero, leaving us with the fraction 1/1, or 100%, which means we approach (without ever quite reaching) absolute certainty that the label applies. Input that correlates negatively with your output will have its value flipped by the negative sign on *e*'s exponent, and as that negative signal grows, the quantity *e to the x* becomes larger, pushing the entire fraction ever closer to zero.
-
-Now imagine that, rather than having *x* as the exponent, you have the sum of the products of all the weights and their corresponding inputs -- the total signal passing through your net. That's what you're feeding into the logistic regression layer at the output layer of a neural network classifier.
-
-With this layer, we can set a decision threshold above which an example is labeled 1, and below which it is not. You can set different thresholds as you prefer -- a low threshold will increase the number of false positives, and a higher one will increase the number of false negatives -- depending on which side you would like to err.
+For several mutually exclusive categories, such as digit labels from 0 to 9, a softmax output gives probabilities that sum to 1. For labels that can apply simultaneously, a model can use a separate sigmoid for each label. The task determines the output and loss, while the hidden layers learn representations that help make that prediction.
 
 ## <a name="ai">Neural Networks & Artificial Intelligence</a>
 
