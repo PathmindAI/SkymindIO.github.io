@@ -13,7 +13,6 @@ Contents
 * [Difficulties of Graph Data: Size and Structure](#difficulty)
 * [Representing and Traversing Graphs for Machine Learning](#represent)
 * [Footnotes](#footnote)
-* [Further Resources on Graph Data Structures and Deep Learning](#reading)
 
 Graphs are data structures that can be ingested by various algorithms, notably neural nets, learning to perform tasks such as classification, clustering and regression.
 

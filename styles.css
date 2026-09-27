@@ -277,6 +277,14 @@ button, input { font: inherit; }
 #wiki-links-ul a:hover, #wiki-links-ul a[aria-current="page"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--ink); }
 #wiki-links-ul a[aria-current="page"] { font-weight: 600; }
 .search-empty, .search-status { color: var(--muted); font-size: .8125rem; line-height: 1.5; margin-top: .7rem; }
+#wiki-search-results { list-style: none; margin: 0; padding: 0 .65rem 0 0; }
+#wiki-search-results li + li { border-top: 1px solid var(--rule); }
+#wiki-search-results a { display: block; padding: .85rem 0; text-decoration: none; }
+.search-result-title { display: block; color: var(--ink); font-size: .875rem; line-height: 1.4; }
+.search-result-heading { display: block; color: var(--prose); font-size: .75rem; line-height: 1.4; margin-top: .3rem; }
+.search-result-excerpt { display: block; color: var(--prose); font-size: .75rem; line-height: 1.6; margin-top: .4rem; }
+#wiki-search-results a:hover .search-result-title { text-decoration: underline; text-underline-offset: .2em; }
+#wiki-search-results mark { background: var(--selection); color: var(--ink); }
 .article-header { margin-bottom: 2.5rem; }
 .article-header .section-label { margin-bottom: 1.5rem; }
 .article-header .section-label a { text-decoration: none; }

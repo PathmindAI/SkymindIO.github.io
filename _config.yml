@@ -1,6 +1,11 @@
 plugins:
   - jekyll-sitemap
 
+exclude:
+  - scripts
+  - README.md
+  - vendor
+
 title : "Pathmind"
 url: "https://wiki.pathmind.com"
 description: Guides to artificial intelligence, machine learning, and deep learning.

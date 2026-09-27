@@ -12,7 +12,6 @@ Contents
 * <a href="#embed">Neural Word Embeddings</a>
 * <a href="#crazy">Amusing Word2vec Results</a>
 * <a href="#bert">Advances in NLP: ElMO, BERT and GPT-3</a>
-* <a href="#use">Word2vec Use Cases</a>
 * <a href="#foreign">Foreign Languages</a>
 * <a href="#glove">GloVe (Global Vectors) & Doc2Vec</a>
 
@@ -20,7 +19,7 @@ Contents
 
 Word2vec is a two-layer neural net that processes text by "vectorizing" words. Its input is a text corpus and its output is a set of vectors: feature vectors that represent words in that corpus. While Word2vec is not a [deep neural network](neural-network), it turns text into a numerical form that deep neural networks can understand. 
 
-Word2vec's applications extend beyond parsing sentences in the wild. It can be applied just as well to <a href="#sequence">genes, code, likes, playlists, social media graphs and other verbal or symbolic series</a> in which patterns may be discerned.
+Word2vec's applications extend beyond parsing sentences in the wild. It can be applied just as well to genes, code, likes, playlists, social media graphs and other verbal or symbolic series in which patterns may be discerned.
 
 Why? Because words are simply discrete states like the other data mentioned above, and we are simply looking for the transitional probabilities between those states: the likelihood that they will co-occur. So gene2vec, like2vec and follower2vec are all possible. With that in mind, the tutorial below will help you understand how to create neural embeddings for any group of discrete and co-occurring states.
 
@@ -105,7 +104,7 @@ Instead of the pluses, minus and equals signs, we'll give you the results in the
 
     building:architect::software:[programmer, SecurityCenter, WinPcap]
 
-This model was trained on the Google News vocab, which you can [import](#import) and play with. Contemplate, for a moment, that the Word2vec algorithm has never been taught a single rule of English syntax. It knows nothing about the world, and is unassociated with any rules-based symbolic logic or knowledge graph. And yet it learns more, in a flexible and automated fashion, than most knowledge graphs will learn after many years of human labor. It comes to the Google News documents as a blank slate, and by the end of training, it can compute complex analogies that mean something to humans.
+This model was trained on the Google News vocab. Contemplate, for a moment, that the Word2vec algorithm has never been taught a single rule of English syntax. It knows nothing about the world, and is unassociated with any rules-based symbolic logic or knowledge graph. And yet it learns more, in a flexible and automated fashion, than most knowledge graphs will learn after many years of human labor. It comes to the Google News documents as a blank slate, and by the end of training, it can compute complex analogies that mean something to humans.
 
 You can also query a Word2vec model for other assocations. Not everything has to be two analogies that mirror each other.
 

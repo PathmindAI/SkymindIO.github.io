@@ -9,7 +9,6 @@ Contents
 
 * <a href="#perceptron">A Brief History of Perceptrons</a>
 * <a href="#mlp">Multilayer Perceptrons</a>
-* <a href="#code">Just Show Me the Code</a>
 * <a href="#footnote">FootNotes</a>
 * <a href="#reading">Further Reading</a>
 

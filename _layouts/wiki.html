@@ -9,10 +9,10 @@ layout: reader-base
     <details class="article-browser" open>
       <summary>Browse the wiki <span aria-hidden="true">+</span></summary>
       <div class="article-browser-content">
-        <label for="wiki-search-input" class="search-label">Find an article</label>
-        <input id="wiki-search-input" type="search" placeholder="Search topics…" autocomplete="off" aria-controls="wiki-links-ul">
+        <label for="wiki-search-input" class="search-label">Search articles</label>
+        <input id="wiki-search-input" type="search" placeholder="Search titles and text…" autocomplete="off" aria-controls="wiki-links-ul wiki-search-results" data-search-index="/search-{% if page.collection == 'wiki-jp' %}ja{% elsif page.collection == 'wiki-kr' %}ko{% else %}en{% endif %}.json">
         <p class="search-status" role="status" aria-live="polite" hidden></p>
-        <nav aria-label="Topics">
+        <nav class="topic-navigation" aria-label="Topics">
           <ul id="wiki-links-ul">
             {% for topic in wiki_articles %}
               {% if topic.title %}
@@ -21,12 +21,16 @@ layout: reader-base
             {% endfor %}
           </ul>
         </nav>
-        <p class="search-empty" hidden>No matching topics. Try another search.</p>
+        <nav class="search-navigation" aria-label="Search results" hidden>
+          <ul id="wiki-search-results"></ul>
+        </nav>
+        <p class="search-empty" hidden>No matching articles. Try another word.</p>
       </div>
     </details>
   </aside>
   <main id="main" class="wiki-main">
-    <article class="wiki-article">
+    {% assign searchable_text = content | strip_html | strip %}
+    <article class="wiki-article" data-search-url="{{ page.url | escape }}" data-search-title="{{ page.short_title | default: page.title | escape }}" data-search-include="{% if page.collection and page.title and searchable_text != '' and page.short_title != 'Wiki Home' %}true{% else %}false{% endif %}">
       <header class="article-header">
         <p class="section-label">{% if page.url == '/' %}A beginner’s guide{% else %}<a href="/">The Artificial Intelligence Wiki</a>{% endif %}</p>
         <h1>{{ page.title }}</h1>

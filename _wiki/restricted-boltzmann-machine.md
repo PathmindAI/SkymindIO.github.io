@@ -8,13 +8,12 @@ description: A beginner's reference for Restricted Boltzmann Machines (RBMs), in
 Contents
 
 * <a href="#define">Definition & Structure</a>
-* <a href="#reconstruct">Reconstructions</a>
+* <a href="#reconstructions">Reconstructions</a>
 * <a href="#probability">Probability Distributions</a>
-* <a href="#code">Code Sample: Stacked RBMS</a>
 * <a href="#params">Parameters & k</a>
 * <a href="#CRBM">Continuous RBMs</a>
 * <a href="#next">Next Steps</a>
-* <a href="#resource">Other Resources</a>
+* <a href="#resources">Other Resources</a>
 
 ## <a name="define">Definition & Structure</a>
 

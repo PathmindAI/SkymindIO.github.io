@@ -12,8 +12,7 @@ Contents
 * <a href="#define">Definition of Convolutional Nets</a>
 * <a href="#work">How Convolutional Nets Work</a>
 * <a href="#max">Maxpooling/Downsampling</a>
-* <a href="#code">Just Show Me the Code</a>
-* <a href="#resource">More ConvNet Resources</a>
+* <a href="#further-reading">More ConvNet Resources</a>
 
 ## <a name="intro">Introduction to Deep Convolutional Neural Networks</a>
 

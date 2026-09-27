@@ -13,7 +13,7 @@ Contents
 * <a href="#crossover">Reproduction and Crossover</a>
 * <a href="#mutation">Mutation</a>
 * <a href="#algo">Genetic and Evolutionary Algorithms</a>
-* <a href="#evolution">DeepMind: Combining Neural Networks and Evolutionary Architectures</a>
+* <a href="#neural">DeepMind: Combining Neural Networks and Evolutionary Architectures</a>
 * <a href="#further">Further Reading</a>
 
 Just as artificial neural networks capture the imagination by comparing algorithms with neurons in an animate brain, genetic algorithms appeal to the metaphor of evolution, nature's most widely known optimization algorithm. 

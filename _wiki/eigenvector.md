@@ -12,8 +12,7 @@ Contents
 * [Covariance Matrix](#covariance)
 * [Change of Basis](#change)
 * [Entropy & Information Gain](#entropy)
-* [Just Give Me the Code](#code)
-* [Resources](#resources)
+* [Other Wiki Articles](#other-posts-on-the-pathmind-wiki)
 
 This post introduces eigenvectors and their relationship to matrices in plain language and without a great deal of math. It builds on those ideas to explain covariance, principal component analysis, and information entropy.
 
@@ -210,7 +209,7 @@ It so happens that explaining the shape of the data one principal component at a
 
 ## Other Posts on the Pathmind Wiki
 
-* [Deep Neural Networks](./neural network)
+* [Deep Neural Networks](./neural-network)
 * [Recurrent Neural Networks (RNNs) and LSTMs](./lstm)
 * [Word2vec and Neural Word Embeddings](./word2vec)
 * [Convolutional Neural Networks (CNNs) and Image Processing](./convolutional-network)

@@ -12,7 +12,7 @@ MNIST is the "hello world" of machine learning. Data scientists will train an al
 
 MNIST is divided into two datasets: the training set has 60,000 examples of hand-written numerals, and the test set has 10,000. MNIST is a subset of a larger dataset available at the National Institute of Standards and Technology. All of its images are the same size, and within them, the digits are centered and size normalized.
 
-Because MNIST is a labeled dataset that pairs images of hand-written numerals with the name of the respective numeral, it can be used in [supervised learning](./supervised-learning) to train classifiers. It is a good example, alongside Fei Fei Li's ImageNet, of how a good, labeled dataset can advance the cause of machine learning more broadly. More examples of [open datasets are here](open-datasets).
+Because MNIST is a labeled dataset that pairs images of hand-written numerals with the name of the respective numeral, it can be used in [supervised learning](./supervised-learning) to train classifiers. It is a good example, alongside Fei Fei Li's ImageNet, of how a good, labeled dataset can advance the cause of machine learning more broadly.
 
 Yann LeCun, now the chief AI scientist at Facebook AI Research (FAIR), wrote a [web page describing MNIST in depth](http://yann.lecun.com/exdb/mnist/). LeCun's worked on image processing in the early 1990s at Bell Labs, with a focus on recognizing hand-written numerals and as part of a larger project to help banks automate check processing.
 

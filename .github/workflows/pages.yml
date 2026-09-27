@@ -1,0 +1,55 @@
+name: Check and publish wiki
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test link checker and search index builder
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'
+      - name: Test search matching
+        run: node --test scripts/search.test.cjs
+      - name: Build site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Build search indexes
+        run: python3 scripts/build_search.py _site
+      - name: Check internal links and section destinations
+        run: python3 scripts/check_site.py _site
+      - name: Check search index destinations
+        run: python3 scripts/check_search.py _site
+      - name: Upload checked site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish checked site
+        id: deployment
+        uses: actions/deploy-pages@v4
