@@ -4,50 +4,47 @@ short_title: Logistic Regression
 description: A beginner's reference for using logistic regression with machine learning and deep learning.
 ---
 
-Logistic regression converts input data into one of two categories. Show it portraits and it will categorize them as male or female. It functions as a binomial classifier.
+Binary logistic regression estimates the probability that an input belongs to one of two categories. Given features extracted from a food photograph, for example, it can estimate the probability that the food is a hot dog.
 
-You can think of logistic regression as an on-off switch. It can stand alone, or some version of it may be used as a mathematical component to form switches, or gates, that relay or block the flow of information.
+You can think of the classifier as an on-off switch driven by a probability. The model supplies a smooth value between 0 and 1; a decision threshold turns that number into a choice. [Hot dog or not hot dog](https://www.youtube.com/watch?v=ACmydtFDTGs).
 
-Like any switch, logistic regression can be a component in a larger circuit. Logistic regression is the transistor of machine learning, the switch upon which larger  and more universal computation engines are built. 
-
-Instead of regulating current, or voltage flow, in a circuit board, logistic regression regulates the signal flowing from input data through a larger algorithm to the predictions that it makes. 
-
-On a circuit board, a transistor might receive voltage that opens a current to turn on a light. In a machine-learning algorithm, logistic regression allows signal through, or not, to make a classification. [Hot dog or not hot dog](https://www.youtube.com/watch?v=ACmydtFDTGs). 
+The smooth function used by logistic regression can also act as a gate within a neural network. Its output controls how much signal passes through, which makes the circuit analogy useful even when the gate is partly open.
 
 ![Logistic Regression](/images/wiki/logistic-regression.png)
 
-The image above traces a logistic function. As you can see, it is s-shaped, or sigmoid, flattening out at the top and bottom, while transitioning quickly between the two states before entering one of the long, asymptotic tails. What that means is, input can build up for a long time while still being interpreted by the function as "off", but by adding incrementally more signal at just the right place, the function flips to "on", and it remains "on" forever.
+The image above traces a logistic function. It is S-shaped, or sigmoid, flattening out near 0 and 1. A score of zero maps to 0.5. Larger positive scores move the output toward 1, while more negative scores move it toward 0. The output changes most rapidly near the middle of the curve.
 
-Logistic regression is widely used in statistics, and it was originally applied in ecology to the study of populations, whose growth tends to plateau as they exhaust the resources at their disposal.<sup>[1](#one)</sup>    
+The same S-shaped curve can describe a population whose growth slows as it approaches the resources available to sustain it.<sup>[1](#one)</sup>
 
-As a function, logistic regression is simply an S-shaped curve that can ingest any real-valued number, and translate it to a value between 0 and 1. In the graph above, we take continuous values between -6 and 6 and map them to values between 0 an 1. Here is the formula that performs that mapping:
+Logistic regression combines a weighted input score with this curve to estimate a probability. The logistic function maps the score `z` to `p = 1 / (1 + exp(-z))`:
 
 ![Logistic Regression (1 / (1 + e^-z))](/images/wiki/logistic-regression-function.png)
 
-Fwiw, `e` is a mathematical constant known as Euler's number, an irrational number that is approximately 2.71828. It is the base of the natural logarithms (which answer the question: which number x, when multiplied by itself, produces number y. Logarithms look like a flattening hill, while exponential functions, their inverse, look like a mountain being beamed up to a space ship).
+Here, `exp(-z)` means `e` raised to the power `-z`. Euler's number, `e`, is approximately 2.71828.
 
-In this same formula, `z` is the sum of all inputs that are being used to make a prediction; i.e. `z = b0 + b1 + b2 + b3 ...`
+The score includes an intercept and a weighted term for each input feature: `z = b0 + b1*x1 + b2*x2 + b3*x3 + ...`. Here `b0` is the intercept, each `x` is a feature value, and its matching `b` is a coefficient learned from labeled training data. For a one-feature example, `b0 = -3`, `b1 = 2` and `x1 = 2` give `z = 1`, which maps to a probability of about `0.73`.
 
 ## Neural Networks and Logistic Regression
 
 Broadly speaking, neural networks are used for the purpose of clustering through [unsupervised learning](./unsupervised-learning), classification through supervised learning, or regression. That is, they help group unlabeled data, categorize labeled data or predict continuous values.
 
-Classifiers typically use a form of logistic regression in the net's final layer to convert continuous data into dummy variables like 0 and 1 -- e.g. given someone's height, weight and age you might bucket them as a heart-disease candidate or not.
+A neural network for binary classification can use a sigmoid in its final layer to turn a score into a probability. The earlier layers learn the features that contribute to that score. A separate threshold can then turn the probability into a predicted class.
 
 {% include wiki-inline-cta.html %}
 
 ## Logistic Regression Predicts Probabilities
 
-When you map all your inputs to a value between 0 and 1, one way to think about the result is as a probability. Since logistic regression is a binomial classifier, [bucketing everything it sees as either `hotdog` or `not_hotdog`](https://www.engadget.com/2017/05/15/not-hotdog-app-hbo-silicon-valley/), then it's results can be interpreted as the likelihood that the data in question is a hot dog. Or spam. Or fraud. The main category is known as the default class, usually the represented as the 1 in the classifier.  
+For the [hot-dog classifier](https://www.engadget.com/2017/05/15/not-hotdog-app-hbo-silicon-valley/), we can encode `hotdog` as 1 and `not_hotdog` as 0. The class encoded as 1 is called the positive class. The model's output estimates its probability given the input features.
 
-You can express logistic regression in a [Bayesian way](bayes-theorem-naive-bayes): 
+Using conditional-probability notation, we can write that as:
 
-`P(food=hotdog|color)`
+`P(food=hotdog | image_features)`
 
-While you may be using logistic regression as a classifier for hot dogs, the output it's really giving you is the probability that the data in question is a hot dog.
+With a threshold of 0.5, the probability `0.73` from our example produces a positive prediction. A higher threshold would require stronger model confidence before assigning that class. Choose the threshold using validation data and the consequences of different mistakes. The [scikit-learn guide to classification thresholds](https://scikit-learn.org/stable/modules/classification_threshold.html) explains how this choice changes predictions.
 
 ### Further Reading
 
+* [Logistic regression: model and objective, scikit-learn](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression)
 * [Logistic Regression Derived From Bayes Theorem](https://www.countbayesie.com/blog/2019/6/12/logistic-regression-from-bayes-theorem)
 
 ### Footnotes

@@ -1,7 +1,7 @@
 ---
 title: Simulation, AI, Optimization and Complexity
 short_title: Simulation, AI and Optimization
-description: Explaining the relationship of simulation, optimization and AI (deep reinforcement learning and neural networks) for use cases like supply chain and manufacturing, where complexity is solved with multi-agent coordination.
+description: How simulations model complex systems and help compare optimization methods for supply chains and manufacturing.
 ---
 
 ## What Are Simulations and Why Are They Useful?
@@ -32,13 +32,15 @@ So businesses were early creators of simulations to imitate, or model, parts of 
 
 Changes to one part of the system can have an unforeseen impact on another. Sometimes those changes are deliberate improvements, other times they are external shocks that impact operations, such as the widespread supply and demand disruptions occurring during the COVID-19 lockdowns. 
 
-Simulation modelers often seek to explore changes in a system that will help them achieve better outputs to reach their goals; e.g. in business, it would greater profitability or efficiency, while in public health, it might be greater immunity and fewer deaths. Simulations help them surface causal relationships that they wouldn’t otherwise see. 
+Simulation modelers often seek to explore changes in a system that will help them achieve better outputs to reach their goals; e.g. in business, it would be greater profitability or efficiency, while in public health, it might be greater immunity and fewer deaths. Simulations help them surface causal relationships that they wouldn’t otherwise see.
 
 So people use simulations to explore a space of possibilities; i.e. “What happens if I change the model like this, or that...?” And that exploration will often have the goal of improving operations. This goes beyond the analysis of historical data, which shows what was done in the past, to reveal what might happen if you took an action for the first time, which is only possible because you have modeled the logic of your system in the simulation in order to interact with it. 
 
-A business might seek the best way to, say, configure a supply chain. Let's say it has a bunch of different factories with different capacities, a changing queue of items to produce, variable demand, and shifting conditions (like weather) that affect how goods are delivered. Adjusting several parameters in that complex system at once, to see what would happen over many time steps, is only possible with simulations. Finding the best path is only possible through optimization, which can automatically evaluate many possible configurations of the simulation, to arrive at the best one. 
+A business might seek a better way to configure a supply chain. Its factories have different capacities, orders arrive at different times, and weather can disrupt deliveries. Simulation lets the business test how a proposed configuration behaves over time. An optimizer can use those results to search for configurations that meet an objective, such as reducing delivery delays within a fixed budget.
 
-Optimization allows users to go beyond slow, manual exploration within a simulation. Various optimization tools exist, from solvers to search algorithms. But for truly complex systems, the only possible optimizer is [deep reinforcement learning](pathmind.com). DRL can crack previously unsolvable problems, and in using it, we can begin to steer [emergent behavior](https://en.wikipedia.org/wiki/Emergence) within complex systems. 
+Optimization tools automate some of that search. A simulation can evaluate candidate settings, such as warehouse reorder thresholds, while a search algorithm proposes settings to try next. [Evolutionary algorithms](./evolutionary-genetic-algorithm) are one option: [differential evolution](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.differential_evolution.html), for example, searches among candidate parameter values without requiring gradients. Simulation packages also offer dedicated optimization engines, such as [AnyLogic's genetic and OptQuest engines](https://anylogic.help/anylogic/experiments/optimization.html). The choice depends on the decisions you can change, the cost of each run, and the constraints a solution must satisfy.
+
+[Deep reinforcement learning](./deep-reinforcement-learning) can learn a policy, a rule for choosing actions, when the problem calls for a sequence of decisions as conditions change. For example, a policy can route each arriving order based on current queues and machine availability. Training uses repeated interaction with the simulation to learn which actions improve the chosen reward. Compare the learned policy with simpler dispatch rules or other optimization methods under the same simulated conditions.
 
 ## Why Complexity Matters
 
@@ -52,7 +54,7 @@ At each scale, the relevant entity is a superorganism composed of the entities o
 
 When we analyze teams, we see that they behave, and coalesce, in different ways that [impact their performance](https://aeon.co/essays/what-complexity-science-says-about-what-makes-a-winning-team). Many of the behaviors that maximize team performance are difficult to measure and track on the level of the individual; indeed, by incenting individuals to achieve certain personal metrics (in basketball, it might be rebounds), teams can undermine their own goals. Attempting to solve a problem at the wrong level of abstraction only makes it worse. Simulations allow us to observe agents as they organize themselves into a larger operative entity. 
 
-Business hire invididuals, but those individuals are part of larger efforts based on teamwork. The same is true of machines in factories and warehouses. Individual robots may be built, but the total output of the factory is a function of how their behavior is coordinated. Certain algorithms allow us to monitor and coordinate that collective action, and one of those is deep reinforcement learning. It is an algorithm that can optimize amid complexity. You might that deep RL is the answer to the complexity that plagues the coordination of collective action. 
+Businesses hire individuals, but output depends on how their work fits together. A factory faces the same coordination problem with machines and robots: speeding up one station can leave another waiting or create a queue. A simulation lets you test scheduling rules against those shared constraints. You might compare a learned dispatch policy with a simple rule that assigns each job to the shortest queue.
 
 ## Open-source Simulation Tools
 

@@ -1,12 +1,14 @@
 ---
 title: Decision Tree
 short_title: Decision Tree
-description: A decision tree is a series of nodes, a directional graph that starts at the base with a single node and extends to the many leaf nodes that represent the categories that the tree can classify.
+description: A decision tree uses a sequence of feature-based questions to predict a category or a numerical value.
 ---
 
-A decision tree is a series of nodes, a directional graph that starts at the base with a single node and extends to the many leaf nodes that represent the categories that the tree can classify. Another way to think of a decision tree is as a flow chart, where the flow starts at the root node and ends with a decision made at the leaves. It is a decision-support tool. It uses a tree-like graph to show the predictions that result from a series of feature-based splits. 
+A decision tree is a series of nodes connected by branches. You can think of it as a flow chart: follow questions about the input from the root node until you reach a prediction at a leaf. A classification tree predicts a category, while a regression tree predicts a numerical value.
 
 ![decision tree](/images/wiki/decision_tree.png)
+
+A regression tree might ask about a house's floor area and location, then predict its sale price. With squared-error training, each leaf predicts the mean price of the training houses that reached it. If a leaf contains houses sold for $200,000, $240,000 and $280,000, a new house reaching that leaf receives a $240,000 prediction. Splits are chosen to reduce prediction error. See the [scikit-learn explanation of regression trees](https://scikit-learn.org/stable/modules/tree.html#regression).
 
 Here are some useful terms for describing a decision tree:
 
@@ -32,8 +34,8 @@ Decision trees are a popular algorithm for several reasons:
 
 **Disadvantages**
 
-* Overfitting: Over fitting is a common flaw of decision trees. Setting constraints on model parameters (depth limitation) and making the model simpler through pruning are two ways to regularize a decision tree and improve its ability to generalize onto the test set.
-* Predicting continuous variables: While decision trees can ingest continuous numerical input, they are not a practical way to predict such values, since decision-tree predictions must be separated into discrete categories, which results in a loss of information when applying the model to continuous values.
+* Overfitting: A deep tree can fit details of the training data that fail to generalize. Limiting depth and pruning branches can help; choose those settings using validation data.
+* Stepwise predictions: A standard regression tree predicts one value per leaf. Its prediction stays constant within each region and can jump at a split. It can model continuous targets, but this stepwise shape can be a poor fit for a smooth trend.
 * Heavy feature engineering: The flip side of a decision tree's explanatory power is that it requires heavy feature engineering. When dealing with unstructured data or data with latent factors, this makes decision trees sub-optimal. Neural networks are clearly superior in this regard. 
 
 One weird thing about decision trees (or random forests) is how conceptually simple they are, while in terms of implementation they're non-trivial. How do you find the optimal split/feature based on entropy? Naively implemented, they require something on the order of O(kNlogN) for each split. Multiply that by the number of leaves (2^depth), and multiply that by the number of trees in your forest.

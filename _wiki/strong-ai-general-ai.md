@@ -1,7 +1,7 @@
 ---
-title: Strong AI, Weak AI & Super Intelligence
-short_title: Strong AI vs. Weak AI
-description: The differences between super-human intelligence and general-purpose machine modeling.
+title: Strong AI, General AI & Superintelligence
+short_title: AGI & Superintelligence
+description: How general capability, superhuman performance and claims about machine understanding differ.
 ---
 
 > The press, the machine, the railway, the telegraph are premises whose thousand-year conclusion no one has yet dared to draw.
@@ -9,33 +9,35 @@ description: The differences between super-human intelligence and general-purpos
 
 > The strange thing is that all of this took so long and happened so suddenly. *-Ted Nelson, author of "Computer Lib", on the advent of the personal computer*
 
-Technological progress, like evolution, is non-linear. It can alternate between stagnations and explosions, operating at different speeds, and accelerating quickly. Why? Because both evolution and new technologies emerge from the slow accumulation of many causes, a confluence of criteria. Many of those factors are necessary, but in themselves insufficient, to trigger a breakthrough. Only when present in their totality is the event unleashed. 
+Technological progress can come in bursts. A promising idea may wait for cheaper hardware or a better way to train a model before it becomes practical. That uneven pace makes it tempting to read each breakthrough as a preview of everything AI will eventually do.
 
-# What Is Strong AI? What Is General AI?
+## What Is General AI?
 
-Let's talk synonyms: strong AI, general AI, artificial general intelligence (AGI) and superintelligence all basically refer to the same thing. And what they refer to is an algorithm or set of algorithms that can perform all tasks as well as or better than humans. And to be clear, that does not exist. It is an idea. Some AI researchers think they know how to get there, others are skeptical that getting there is possible, and still others think it is possible but undesireable. 
+**Artificial general intelligence (AGI)** refers to broad competence across tasks, including the ability to learn unfamiliar tasks and apply knowledge in new situations. Definitions differ over the range of tasks and level of performance required. A [framework proposed by Google DeepMind researchers](https://arxiv.org/abs/2311.02462) treats generality, the breadth of a system's abilities, and performance, how well it carries out those tasks, as separate dimensions.
 
-We call a certain type of AI "strong" because we imagine it will be stronger than us. We call it "general" because it will apply to all problems; i.e. it will solve all or most problems better than humans do. The opposite of strong AI is weak AI. The opposite of general AI is narrow AI. 
+**Superintelligence** adds a much higher performance threshold. In [Nick Bostrom's definition](https://nickbostrom.com/superintelligence), it means an intellect that substantially exceeds the best humans across practically every cognitive field. Human-level general competence and broadly superhuman competence are different targets.
 
-As these words are being written in 2018, we live in an age of weak and narrow AI. Weak AI is an algorithm that has been trained to do one thing, and it does that one thing very well. Weak AI is like a prodigy whose talent in one domain surpasses average human performance, but who may lag in other areas. At a local chess club I know, the inside joke was: "Good at chess, bad at life." That's weak AI. It's bad at life, but very good at a few focused tasks. A given AI model may be able to win at Go, but does that same model know how to navigate a simple social situation? No. 
+**Narrow AI** has a limited scope, even when its performance within that scope is extraordinary. At a local chess club I know, the inside joke was: "Good at chess, bad at life." Navigating an unfamiliar social situation calls for skills beyond choosing a move on a board.
 
-The AI that data scientists are deploying to the world right now is a bunch of machine-learning models, each of which performs one task well. They are like a crowd of savants babbling their narrow responses to the world. That said, DeepMind's algorithms, most recently AlphaZero, are able to solve a wider and wider array of video games. They are generalizing beyond a single problem. 
+## What Does Strong AI Mean?
 
-## AI Isn't Strong Yet, but Is It Getting Stronger?
+The term **strong AI** has a philosophical meaning. In his 1980 paper [*Minds, Brains, and Programs*](https://artscimedia.case.edu/wp-content/uploads/2013/07/14182625/Searle-Minds-Brains-and-Programs.pdf), John Searle used it for the claim that an appropriately programmed computer could literally understand and have mental states. His term **weak AI** described the use of computers as tools for studying the mind.
 
-The short answer is "yes." 
+Searle's distinction asks whether a machine understands; an AGI assessment asks which activities it can perform and how well. Using the terms interchangeably mixes a question about minds with a question about capabilities.
 
-The two organizations doing the most interesting work on general AI are probably Google and [Open AI](https://openai.com/){:target="_blank"}, a think tank created by Elon Musk and Sam Altman, among others. Google's AI research mostly happens at [DeepMind](https://deepmind.com/blog/){:target="_blank"} and [Google Brain](https://research.googleblog.com/){:target="_blank"}.
+## What Does AlphaZero Show?
 
-If AI is getting stronger, it is because of organizations like those. And AI is getting stronger, at least in the sense that it is able to produce more and more accurate predictions about the data you feed it. The progress made in computer vision over the last decade, approaching 100% accuracy recognizing objects in images correctly, is one indicator of increasingly strong AI. The ability of DeepMind algorithms to win more and more games, and to transfer learning from one game to another, is a second indication. The [ability of OpenAI's GPT-2](https://slatestarcodex.com/2019/02/19/gpt-2-as-step-toward-general-intelligence/) to solve problems that it was not trained to solve is yet another sign. But we're not there yet.<sup>[1](#one)</sup>
+DeepMind's [AlphaZero](https://storage.googleapis.com/deepmind-media/DeepMind.com/Blog/alphazero-shedding-new-light-on-chess-shogi-and-go/alphazero_preprint.pdf) learned chess, shogi and Go through self-play. The researchers trained a separate instance from scratch for each board game, using the same learning approach and starting each network with random parameters.
 
-[The discussion about AI, and whether we will be able to create a superintelligence, is fundamentally fideistic](http://kryten.mm.rpi.edu/SB_AB_PB_sing_fideism_022412.pdf). That is, it has the characteristics of a faith-based argument, as much as we might prefer that it resemble a scientific debate. As G.K. Chesteron said, "The special mark of the modern world is not that it is skeptical, but that it is dogmatic without knowing it." AI is like many other powerful technologies in its religious connotations: Prometheus stole fire from Zeus; the railroad gave us the [gospel train](https://www.youtube.com/watch?v=3raxXT8-OX0). 
+AlphaZero showed that one learning method could reach superhuman performance in several games with different rules. The generality was in the training method; each resulting model had learned its own game. Establishing AGI would require evaluating learning and performance across a much broader range of activities.
 
-Like religious debates or questions of taste, debate about AI often seems like a "dialog of the deaf," as the French call it: different camps talk past each other. One of the fundamental differences that keep them from reaching an understanding, aside from sheer tribalism, is what they focus their attention on. AI skeptics tend to focus on our position (where the state of the art is now), while superintelligence believers tend to focus on our velocity (i.e. how quickly new advances are made). Both are right. We do not presently seem to be close to AI, and progress in the field is happening very quickly. 
+## How Should We Judge Progress?
+
+An improvement on an image-recognition benchmark measures performance on that benchmark's images and labels. To understand its reach, we need to know how the model handles unfamiliar conditions and which new tasks it can learn. Reliable performance across those changes is part of what makes generality difficult to measure.
+
+Debates about future AI often confuse position with velocity: what a system can do now and how quickly its abilities are changing. A forecast needs to specify that rate of change and the obstacles further progress would have to overcome, along with a timescale on which the prediction can be tested.<sup>[1](#one)</sup>
 
 ## Superintelligence Quotes
-
-A number of respected figures in science and technology have attempted to warn humanity about the dangers of strong AI. They are the [AI millenarians](./ai-winter).
 
 > The genie is out of the bottle. We need to move forward on artificial intelligence development but we also need to be mindful of its very real dangers. I fear that AI may replace humans altogether. If people design computer viruses, someone will design AI that replicates itself. This will be a new form of life that will outperform humans. - *[Stephen Hawking in WIRED](https://www.wired.co.uk/article/stephen-hawking-interview-alien-life-climate-change-donald-trump)*
 

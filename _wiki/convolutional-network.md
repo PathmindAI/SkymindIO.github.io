@@ -8,7 +8,7 @@ description: A Beginner's Guide to Deep Convolutional Neural Networks (CNNs)
 Contents
 
 * <a href="#intro">Introduction to Convolutional Neural Networks</a>
-* <a href="#tensors">Images Are 4-D Tensors?</a>
+* <a href="#tensors">Images, Channels, and Batches</a>
 * <a href="#define">Definition of Convolutional Nets</a>
 * <a href="#work">How Convolutional Nets Work</a>
 * <a href="#max">Maxpooling/Downsampling</a>
@@ -25,16 +25,16 @@ Convolutional networks can also perform more banal (and more profitable), busine
 
 CNNs are not limited to image recognition, however. They have been applied directly to [text analytics](http://www.wildml.com/2015/11/understanding-convolutional-neural-networks-for-nlp/){:target="_blank"}. And they be applied to sound when it is represented visually as a spectrogram, and graph data with [graph convolutional networks](./graph-analysis).
 
-## <a name="tensors">Images Are 4-D Tensors?</a>
+## <a name="tensors">Images, Channels, and Batches</a>
 
-Convolutional neural networks ingest and process images as tensors, and tensors are matrices of numbers with additional dimensions.
+Convolutional neural networks process images as tensors: arrays of numbers arranged along one or more axes.
 
-They can be hard to visualize, so let’s approach them by analogy. A scalar is just a number, such as 7; a vector is a list of numbers (e.g., `[7,8,9]`); and a matrix is a rectangular grid of numbers occupying several rows and columns like a spreadsheet. Geometrically, if a scalar is a zero-dimensional point, then a vector is a one-dimensional line, a matrix is a two-dimensional plane, a stack of matrices is a three-dimensional cube, and when each element of those matrices has a stack of *feature maps* attached to it, you enter the fourth dimension. For reference, here’s a 2 x 2 matrix:
+They can be hard to visualize, so let’s approach them by analogy. A scalar is just a number, such as 7; a vector is a list of numbers (e.g., `[7,8,9]`); and a matrix is a rectangular grid of numbers occupying several rows and columns like a spreadsheet. A matrix has two axes, one for rows and one for columns. Here’s a 2 x 2 matrix:
 
     [ 1, 2 ]
     [ 5, 8 ]
 
-A tensor encompasses the dimensions beyond that 2-D plane. You can easily picture a three-dimensional tensor, with the array of numbers arranged in a cube. Here’s a 2 x 3 x 2 tensor presented flatly (picture the bottom element of each 2-element array extending along the z-axis to intuitively grasp why it’s called a 3-dimensional array):
+Stacking matrices adds a third axis. Here’s a 2 x 3 x 2 tensor: two groups, each containing three pairs of numbers. You need three indices to select one number from it.
 
 ![tensor](/images/wiki/tensor.png)
 
@@ -42,15 +42,15 @@ In code, the tensor above would appear like this: `[[[2,3],[3,5],[4,7]],[[3,4],[
 
 ![3d matrix cube](/images/wiki/3d_matrix_cube.png)
 
-In other words, tensors are formed by arrays nested within arrays, and that nesting can go on infinitely, accounting for an arbitrary number of dimensions far greater than what we can visualize spatially. A 4-D tensor would simply replace each of these scalars with an array nested one level deeper. Convolutional networks deal in 4-D tensors like the one below (notice the nested array).
+Arrays can be nested to represent more axes than we can draw in space. The diagram below shows three axes, labeled row, column and page. A fourth axis could identify which stack of pages we want.
 
 ![3d matrix](/images/wiki/3d_matrix.png)
 
 With some tools, you will see `NDArray` used synonymously with tensor, or multi-dimensional array. A tensor’s dimensionality `(1,2,3…n)` is called its order; i.e. a fifth-order tensor would have five dimensions.
 
-The width and height of an image are easily understood. The depth is necessary because of how colors are encoded. Red-Green-Blue (RGB) encoding, for example, produces an image three layers deep. Each layer is called a "channel", and through convolution it produces a stack of feature maps (explained below), which exist in the fourth dimension, just down the street from time itself. (Features are just details of images, like a line or curve, that convolutional networks create maps of.)
+For one RGB image, the three axes are height, width and color channel. A 30-pixel-high, 30-pixel-wide image has shape `(30, 30, 3)`: one red, one green and one blue value at each pixel. A batch of 32 such images has shape `(32, 30, 30, 3)`. The batch supplies the fourth axis.
 
-So instead of thinking of images as two-dimensional areas, in convolutional nets they are treated as four-dimensional volumes. These ideas will be explored more thoroughly below.
+A convolution produces *feature maps*, which record responses to learned patterns such as edges or curves. Those maps become the output channels. They occupy the same channel axis that held RGB values in the input. We use the `(batch, height, width, channels)` convention throughout; [Keras also supports placing channels before height and width](https://keras.io/api/layers/convolution_layers/convolution2d/).
 
 {% include wiki-inline-cta.html %}
 
@@ -70,7 +70,7 @@ The next thing to understand about convolutional nets is that they are passing *
 
 Convolutional networks take those filters, slices of the image's feature space, and map them one by one; that is, they create a map of each place that feature occurs. By learning different portions of a feature space, convolutional nets allow for easily scalable and robust feature engineering.
 
-(Note that convolutional nets analyze images differently than RBMs. While RBMs learn to reconstruct and identify the features of each image as a whole, convolutional nets learn images in pieces that we call feature maps.)
+(In a fully connected RBM, each hidden unit receives input from every visible unit. A convolutional filter instead examines a local patch and uses the same weights at each location.)
 
 So convolutional networks perform a sort of search. Picture a small magnifying glass sliding left to right across a larger image, and recommencing at the left once it reaches the end of one pass (like typewriters do). That moving window is capable recognizing only one thing, say, a short vertical line. Three dark pixels stacked atop one another. It moves that vertical-line-recognizing filter over the actual pixels of the image, looking for matches.
 
@@ -78,7 +78,7 @@ Each time a match is found, it is mapped onto a feature space particular to that
 
 Convolutional nets perform more operations on input than just convolutions themselves.
 
-After a convolutional layer, input is passed through a nonlinear transform such as *tanh* or *rectified linear* unit, which will squash input values into a range between -1 and 1.
+The convolution's output is usually passed through a nonlinear activation function. *Tanh* maps finite inputs to values between -1 and 1. The standard *rectified linear unit*, or [ReLU](https://keras.io/api/layers/activation_layers/relu/), computes `max(x, 0)`: negative inputs become zero, and positive inputs pass through unchanged. ReLU has no upper bound.
 
 ## <a name="work">How Convolutional Neural Networks Work</a>
 
@@ -86,7 +86,7 @@ The first thing to know about convolutional networks is that they don't perceive
 
 {% include wiki-inline-cta.html %}
 
-Convolutional networks perceive images as volumes; i.e. three-dimensional objects, rather than flat canvases to be measured only by width and height. That's because digital color images have a red-blue-green (RGB) encoding, mixing those three colors to produce the color spectrum humans perceive. A convolutional network ingests such images as three separate strata of color stacked one on top of the other.
+Convolutional networks perceive images as volumes; i.e. three-dimensional objects, rather than flat canvases to be measured only by width and height. That's because digital color images have a red-green-blue (RGB) encoding, mixing those three colors to produce the color spectrum humans perceive. A convolutional network ingests such images as three separate strata of color stacked one on top of the other.
 
 So a convolutional network receives a normal color image as a rectangular box whose width and height  are measured by the number of pixels along those dimensions, and whose depth is three layers deep, one for each letter in RGB. Those depth layers are referred to as *channels*.
 
@@ -98,22 +98,22 @@ Now, for each pixel of an image, the intensity of R, G and B will be expressed b
 
 Those numbers are the initial, raw, sensory features being fed into the convolutional network, and the ConvNets purpose is to find which of those numbers are significant signals that actually help it classify images more accurately. (Just like other feedforward networks we have discussed.)
 
-Rather than focus on one pixel at a time, a convolutional net takes in square patches of pixels and passes them through a *filter*. That filter is also a square matrix smaller than the image itself, and equal in size to the patch. It is also called a *kernel*, which will ring a bell for those familiar with support-vector machines, and the job of the filter is to find patterns in the pixels.
+Rather than focus on one pixel at a time, a convolutional net applies a *filter*, also called a *kernel*, to a small patch. In an ordinary convolution, each filter spans all input channels. For our RGB image, a filter covering a 3x3 patch therefore has shape `3x3x3`, with a separate set of nine weights for each color channel.
 
 <iframe src="https://cs231n.github.io/assets/conv-demo/index.html" width="100%" height="700px;" style="border:none;"></iframe>
 *Credit for this excellent animation goes to [Andrej Karpathy](https://cs231n.github.io/).*
 
-Imagine two matrices. One is 30x30, and another is 3x3. That is, the filter covers one-hundredth of one image channel's surface area.
+First, look at just one channel of the image and the corresponding slice of the filter. One is 30x30, and the other is 3x3. The filter covers one-hundredth of that channel's surface area.
 
 We are going to take the dot product of the filter with this patch of the image channel. If the two matrices have high values in the same positions, the dot product's output will be high. If they don't, it will be low. In this way, a single value -- the output of the dot product -- can tell us whether the pixel pattern in the underlying image matches the pixel pattern expressed by our filter.
 
 Let's imagine that our filter expresses a horizontal line, with high values along its second row and low values in the first and third rows. Now picture that we start in the upper lefthand corner of the underlying image, and we move the filter across the image step by step until it reaches the upper righthand corner. The size of the step is known as *stride*. You can move the filter to the right one column at a time, or you can choose to make larger steps.
 
-At each step, you take another dot product, and you place the results of that dot product in a third matrix known as an *activation map*. The width, or number of columns, of the activation map is equal to the number of steps the filter takes to traverse the underlying image. Since larger strides lead to fewer steps, a big stride will produce a smaller activation map. This is important, because the size of the matrices that convolutional networks process and produce at each layer is directly proportional to how computationally expensive they are and how much time they take to train. A larger stride means less time and compute.
+At each position, you take another dot product. Summing these products across the input channels and adding the filter's bias gives one value in the output *feature map*. Its width equals the number of horizontal positions the filter visits. With the same input, filter size and padding, a larger stride produces a smaller map and requires fewer computations.
 
-A filter superimposed on the first three rows will slide across them and then begin again with rows 4-6 of the same image. If it has a stride of three, then it will produce a matrix of dot products that is 10x10. That same filter representing a horizontal line can be applied to all three channels of the underlying image, R, G and B. And the three 10x10 activation maps can be added together, so that the aggregate activation map for a horizontal line on all three channels of the underlying image is also 10x10.
+A 3x3 filter with stride three visits rows 1–3, then 4–6, and so on. With a 30x30 image and no padding, it fits at ten positions along each axis, producing a 10x10 map. For RGB input, its three channel slices produce contributions that are summed at each position. All 27 weights, plus one bias, belong to a single filter that produces one output map.
 
-Now, because images have lines going in many directions, and contain many different kinds of shapes and pixel patterns, you will want to slide other filters across the underlying image in search of those patterns. You could, for example, look for 96 different patterns in the pixels. Those 96 patterns will create a stack of 96 activation maps, resulting in a new volume that is 10x10x96. In the diagram below, we've relabeled the input image, the kernels and the output activation maps to make sure we're clear.
+Now, because images contain many kinds of patterns, we can learn 96 different filters. They produce 96 maps, giving an output shape of `10x10x96` for one image, or `(32, 10, 10, 96)` for our batch of 32. The diagram below uses a smaller example: a 5x5x3 image padded to 7x7x3, two 3x3x3 filters and stride two produce a 3x3x2 output.
 
 ![convolutional network labels](/images/wiki/karpathy-convnet-labels.png)
 
@@ -121,16 +121,16 @@ What we just described is a convolution. You can think of Convolution as a fancy
 
 ![convolutional gaussian](/images/wiki/convgaus.gif)
 
-One of the main problems with images is that they are high-dimensional, which means they cost a lot of time and computing power to process. Convolutional networks are designed to reduce the dimensionality of images in a variety of ways. Filter stride is one way to reduce dimensionality. Another way is through downsampling.
+Large images require considerable storage and computation. A convolution with a larger stride can reduce the height and width of the output, even while the number of channels increases. Pooling offers another way to reduce those spatial dimensions.
 
 ## <a name="max">Max Pooling/Downsampling with CNNs</a>
 
-The next layer in a convolutional network has three names: max pooling, downsampling and subsampling. The activation maps are fed into a downsampling layer, and like convolutions, this method is applied one patch at a time. In this case, max pooling simply takes the largest value from one patch of an image, places it in a new matrix next to the max values from other patches, and discards the rest of the information contained in the activation maps.
+A convolutional layer may be followed by *max pooling*, a form of downsampling. Max pooling takes the largest value in each local window of a feature map. Applied separately to each channel, it can reduce height and width while preserving the number of channels.
 
 ![max pooling](/images/wiki/maxpool.png)
 *Credit to [Andrej Karpathy](https://cs231n.github.io/){:target="_blank"}.*
 
-Only the locations on the image that showed the strongest correlation to each feature (the maximum value) are preserved, and those maximum values combine to form a lower-dimensional space.
+For example, 2x2 pooling windows with stride two turn a 10x10x96 volume into a 5x5x96 volume. Each output retains the largest value in its window, losing the other values and the precise position of the maximum within that window.
 
 Much information about lesser values is lost in this step, which has spurred research into alternative methods. But downsampling has the advantage, precisely because information is lost, of decreasing the amount of storage and processing required.
 

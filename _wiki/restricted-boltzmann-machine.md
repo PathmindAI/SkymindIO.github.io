@@ -30,65 +30,57 @@ RBMs are shallow, two-layer neural nets that constitute the building blocks of *
 
 Each circle in the graph above represents a neuron-like unit called a *node*, and nodes are simply where calculations take place. The nodes are connected to each other across layers, but no two nodes of the same layer are linked.
 
-That is, there is no intra-layer communication – this is the *restriction* in a restricted Boltzmann machine. Each node is a locus of computation that processes input, and begins by making stochastic decisions about whether to transmit that input or not. (*Stochastic* means “randomly determined”, and in this case, the coefficients that modify inputs are randomly initialized.)
+That is, there is no intra-layer communication: this is the *restriction* in a restricted Boltzmann machine. In a binary RBM, each unit has a state of zero or one. During sampling, it turns on with a probability determined by the other layer's states, the connecting weights and its bias. This sampling makes the units stochastic.
 
 Each visible node takes a low-level feature from an item in the dataset to be learned. For example, from a dataset of grayscale images, each visible node would receive one pixel-value for each pixel in one image. (MNIST images have 784 pixels, so neural nets processing them must have 784 input nodes on the visible layer.)
 
-Now let's follow that single pixel value, *x*, through the two-layer net. At node 1 of the hidden layer, x is multiplied by a *weight* and added to a so-called *bias*. The result of those two operations is fed into an *activation function*, which produces the node's output, or the strength of the signal passing through it, given input x.
+Now let's follow that single pixel value, *x*, through the two-layer net. At node 1 of the hidden layer, x is multiplied by a *weight* and added to a *bias*. For a binary hidden unit, applying the sigmoid function gives its probability of turning on. We can then sample a zero-or-one state from that probability.
 
-		activation f((weight w * input x) + bias b ) = output a
+		probability of a = 1: sigmoid((weight w * input x) + bias b)
 
 ![input path RBM](/images/wiki/input_path_RBM.png)
 
-Next, let's look at how several inputs would combine at one hidden node. Each x is multiplied by a separate weight, the products are summed, added to a bias, and again the result is passed through an activation function to produce the node's output.
+Next, let's look at how several inputs combine at one hidden node. Each x is multiplied by a separate weight. We sum those products, add the node's bias and apply the sigmoid to get its activation probability.
 
 ![weighted input RBM](/images/wiki/weighted_input_RBM.png)
 
 Because inputs from all visible nodes are being passed to all hidden nodes, an RBM can be defined as a *symmetrical bipartite graph*.
 
-*Symmetrical* means that each visible node is connected with each hidden node (see below). *Bipartite* means it has two parts, or layers, and the *graph* is a mathematical term for a web of nodes.
+*Symmetrical* means that the same connection weight is used when computing either layer's probabilities from the other. *Bipartite* means the graph has two groups of nodes, with connections only between groups. Here, every visible node connects to every hidden node.
 
 At each hidden node, each input x is multiplied by its respective weight w. That is, a single input x would have three weights here, making 12 weights altogether (4 input nodes x 3 hidden nodes). The weights between two layers will always form a matrix where the rows are equal to the input nodes, and the columns are equal to the output nodes.
 
-Each hidden node receives the four inputs multiplied by their respective weights. The sum of those products is again added to a bias (which forces at least some activations to happen), and the result is passed through the activation algorithm producing one output for each hidden node.
+Each hidden node receives the four inputs multiplied by their respective weights. Its bias shifts the probability of activation: a larger bias makes the node more likely to turn on for the same input. It does not guarantee that any node will turn on.
 
 ![multiple inputs RBM](/images/wiki/multiple_inputs_RBM.png)
 
-If these two layers were part of a deeper neural network, the outputs of hidden layer no. 1 would be passed as inputs to hidden layer no. 2, and from there through as many hidden layers as you like until they reach a final classifying layer. (For simple feed-forward movements, the RBM nodes function as an *autoencoder* and nothing more.)
+RBMs can be trained in a stack. The first RBM's hidden activations supply the data for a second RBM, which learns another representation. These learned weights can later initialize a deeper classifier or autoencoder.
 
 ![multiple layer RBM](/images/wiki/multiple_hidden_layers_RBM.png)
 
 ## <a name="reconstructions">Reconstructions</a>
 
-But in this introduction to restricted Boltzmann machines, we'll focus on how they learn to reconstruct data by themselves in an unsupervised fashion (unsupervised means without ground-truth labels in a test set), making several forward and backward passes between the visible layer and hidden layer no. 1 without involving a deeper network.
+An RBM learns a probability distribution over its inputs. Training aims to assign higher probability to examples in the training data. This can be unsupervised: the examples need no class labels. Reconstructions appear during training because the model alternates between sampling hidden states from visible states and visible states from hidden states.
 
-In the reconstruction phase, the activations of hidden layer no. 1 become the input in a backward pass. They are multiplied by the same weights, one per internode edge, just as x was weight-adjusted on the forward pass. The sum of those products is added to a visible-layer bias at each visible node, and the output of those operations is a reconstruction; i.e. an approximation of the original input. This can be represented by the following diagram:
+To reconstruct a binary input, first sample hidden states from their activation probabilities. For each visible unit, sum the weighted hidden states, add its visible bias and apply the sigmoid. This gives the probability of that visible unit being one. Sampling those visible units produces a reconstruction. The same connection weights work in both directions:
 
 ![reconstruction RBM](/images/wiki/reconstruction_RBM.png)
 
-Because the weights of the RBM are randomly initialized, the difference between the reconstructions and the original input is often large. You can think of reconstruction error as the difference between the values of `r` and the input values, and that error is then backpropagated against the RBM's weights, again and again, in an iterative learning process until an error minimum is reached.
+The learning signal compares how often a visible unit and a hidden unit are active together under two conditions: when the visible layer holds training data, and when the network samples from its own model distribution. These are called the positive and negative statistics. Increasing a connection's weight favors that pair being active together. The update strengthens pairs that occur more often with the data than the model currently predicts.
 
-A more thorough explanation of backpropagation is [here](backpropagation).
+Sampling accurately from the model can be slow. *Contrastive divergence*, or CD, approximates the second set of statistics with a short sampling chain started at a training example. In CD-1, we sample hidden states from that example, reconstruct the visible states, then compute hidden probabilities from the reconstruction. The weight update uses the difference between the original and reconstructed visible-hidden associations. This is a biased approximation to the log-likelihood gradient. [Hinton, Osindero and Teh describe the learning rule in section 3 of their paper](https://www.cs.toronto.edu/~hinton/absps/fastnc.pdf).
 
-As you can see, on its forward pass, an RBM uses inputs to make predictions about node activations, or the [probability of output given a weighted x](https://en.wikipedia.org/wiki/Bayes%27_theorem){:target="_blank"}: `p(a|x; w)`.
+Pixel-by-pixel reconstruction error is a useful diagnostic, but CD does not backpropagate that error through the RBM. Low reconstruction error can coexist with a poor model of the data. [Hinton's practical guide explains this limitation in section 5](https://www.cs.toronto.edu/~hinton/absps/guideTR.pdf).
 
-But on its backward pass, when activations are fed in and reconstructions, or guesses about the original data, are spit out, an RBM is attempting to estimate the probability of inputs `x` given activations `a`, which are weighted with the same coefficients as those used on the forward pass. This second phase can be expressed as `p(x|a; w)`.
+Using `x` for visible states and `a` for hidden states, the two sampling directions are `p(a|x)` and `p(x|a)`. The weights and biases define a joint distribution `p(x, a)` from which both conditional distributions follow.
 
-Together, those two estimates will lead you to the joint probability distribution of inputs *x* and activations *a*, or `p(x, a)`.
+Fitting a distribution to the data is called *generative learning*. Maximum-likelihood training is equivalent to minimizing the Kullback–Leibler divergence from the empirical data distribution `p` to the model distribution `q`. For discrete inputs, `KL(p || q) = sum_x p(x) log(p(x) / q(x))`. This weights each log probability ratio by how often that input occurs in the data. [Hinton's contrastive-divergence paper develops this connection](https://www.cs.toronto.edu/~hinton/absps/tr00-004.pdf).
 
-Reconstruction does something different from regression, which estimates a continous value based on many inputs, and different from classification, which makes guesses about which discrete label to apply to a given input example.
-
-Reconstruction is making guesses about the probability distribution of the original input; i.e. the values of many varied points at once. This is known as [generative learning](http://cs229.stanford.edu/notes/cs229-notes2.pdf){:target="_blank"}, which must be distinguished from the so-called discriminative learning performed by classification, which maps inputs to labels, effectively drawing lines between groups of data points.  
-
-Let's imagine that both the input data and the reconstructions are normal curves of different shapes, which only partially overlap.
-
-To measure the distance between its estimated probability distribution and the ground-truth distribution of the input, RBMs use [Kullback Leibler Divergence](https://www.quora.com/What-is-a-good-laymans-explanation-for-the-Kullback-Leibler-Divergence){:target="_blank"}. A thorough explanation of the math can be found on [Wikipedia](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence){:target="_blank"}.
-
-KL-Divergence measures the non-overlapping, or diverging, areas under the two curves, and an RBM's optimization algorithm attempts to minimize those areas so that the shared weights, when multiplied by activations of hidden layer one, produce a close approximation of the original input. On the left is the probability distibution of a set of original input, *p*, juxtaposed with the reconstructed distribution *q*; on the right, the integration of their differences.
+The following curves illustrate two continuous distributions. On the right, the signed area under `p(x) log(p(x) / q(x))` gives their KL divergence. It is not the non-overlapping area between the curves.
 
 ![Alt text](/images/wiki/KL_divergence_RBM.png)
 
-By iteratively adjusting the weights according to the error they produce, an RBM learns to approximate the original data. You could say that the weights slowly come to reflect the structure of the input, which is encoded in the activations of the first hidden layer. The learning process looks like two probability distributions converging, step by step.
+The next picture illustrates a model distribution approaching a data distribution. It is a sketch of the fitting goal; individual CD updates need not reduce KL divergence, and the distributions need not be bell curves.
 
 ![Alt text](/images/wiki/KLD_update_RBM.png)
 
@@ -110,15 +102,15 @@ or the headshots found in Labeled Faces in the Wild:
 
 ![labelled faces wild reconstruction](/images/wiki/LFW_reconstruction.jpg)
 
-Imagine for a second an RBM that was only fed images of elephants and dogs, and which had only two output nodes, one for each animal. The question the RBM is asking itself on the forward pass is: Given these pixels, should my weights send a stronger signal to the elephant node or the dog node? And the question the RBM asks on the backward pass is: Given an elephant, which distribution of pixels should I expect?
+Imagine an RBM fed images of elephants and dogs. Its hidden units might learn patterns involving trunks, ears or fur, without receiving animal labels. Given the pixels, it samples a combination of hidden features. Given those hidden states, it samples a possible arrangement of pixels.
 
-That's joint probability: the simultaneous probability of *x* given *a* and of *a* given *x*, expressed as the shared weights between the two layers of the RBM.
+The joint probability `p(x, a)` describes the probability of a particular visible pattern and hidden state occurring together.
 
 The process of learning reconstructions is, in a sense, learning which groups of pixels tend to co-occur for a given set of images. The activations produced by nodes of hidden layers deep in the network represent significant co-occurrences; e.g. "nonlinear gray tube + big, floppy ears + wrinkles" might be one.
 
-In the two images above, you see reconstructions learned by Deeplearning4j's implemention of an RBM. These reconstructions represent what the RBM's activations "think" the original data looks like. Geoff Hinton refers to this as a sort of machine "dreaming". When rendered during neural net training, such visualizations are extremely useful heuristics to reassure oneself that the RBM is actually learning. If it is not, then its hyperparameters, discussed below, should be adjusted.
+In the two images above, you see reconstructions learned by Deeplearning4j's implementation of an RBM. They show what the hidden states can reconstruct. Inspecting these images can reveal problems such as units that stay on for every input, but recognizable reconstructions alone do not establish that the model assigns sensible probabilities to new data.
 
-One last point: You'll notice that RBMs have two biases. This is one aspect that distinguishes them from other autoencoders. The hidden bias helps the RBM produce the activations on the forward pass (since biases impose a floor so that at least some nodes fire no matter how sparse the data), while the *visible* layer's biases help the RBM learn the reconstructions on the backward pass.
+Each hidden and visible unit has its own bias. Hidden biases affect which features activate; visible biases affect which input values the model tends to generate. Both sets of biases are learned alongside the shared weights.
 
 ### Multiple Layers
 
@@ -126,11 +118,11 @@ Once this RBM learns the structure of the input data as it relates to the activa
 
 This process of creating sequential sets of activations by grouping features and then grouping groups of features is the basis of a *feature hierarchy*, by which neural networks learn more complex and abstract representations of data.
 
-With each new hidden layer, the weights are adjusted until that layer is able to approximate the input from the previous layer. This is greedy, layerwise and unsupervised pre-training. It requires no labels to improve the weights of the network, which means you can train on unlabeled data, untouched by human hands, which is the vast majority of data in the world. As a rule, algorithms exposed to more data produce more accurate results, and this is one of the reasons why deep-learning algorithms are kicking butt.
+Each RBM is trained on the representation supplied by the previous one. This is greedy, layerwise and unsupervised pre-training: it learns one pair of layers at a time, using unlabeled examples.
 
 Because those weights already approximate the features of the data, they are well positioned to learn better when, in a second step, you try to classify images with the deep-belief network in a subsequent supervised learning stage.
 
-While RBMs have many uses, proper initialization of weights to facilitate later learning and classification is one of their chief advantages. In a sense, they accomplish something similar to backpropagation: they push weights to model data well. You could say that pre-training and backprop are substitutable means to the same end.
+Pre-training can provide starting weights for a later stage that uses [backpropagation](backpropagation). In a classifier, that stage can optimize a label-based loss. In [Hinton and Salakhutdinov's deep autoencoder](https://www.cs.toronto.edu/~hinton/absps/science.pdf), backpropagation fine-tunes reconstruction after RBM pre-training. The reconstruction-loss training belongs to that later autoencoder stage.
 
 To synthesize restricted Boltzmann machines in one diagram, here is a symmetrical bipartite and bidirectional graph:
 
@@ -140,23 +132,23 @@ For those interested in studying the structure of RBMs in greater depth, they ar
 
 ## <a name="params">Parameters & k</a>
 
-The variable `k` is the number of times you run contrastive divergence. Contrastive divergence is the method used to calculate the gradient (the slope representing the relationship between a network's weights and its error), without which no learning can occur.
+In CD-`k`, `k` counts full alternating Gibbs-sampling steps before collecting the negative statistics for a weight update. Each step samples the hidden layer given the visible layer, then the visible layer given the hidden layer. Hidden probabilities are computed once more from the final visible sample to measure its associations.
 
-Each time contrastive divergence is run, it's a sample of the Markov Chain composing the restricted Boltzmann machine. A typical value is 1.
+CD-1 uses one such step. Larger values give the sampling chain more time to explore, at greater computational cost. They do not count training epochs or repeated backpropagation passes.
 
-In the above example, you can see how RBMs can be created as layers with a more general `MultiLayerConfiguration`. After each dot you'll find an additional parameter that affects the structure and performance of a deep neural net. Most of those parameters are defined on this site.
+Legacy implementations such as Deeplearning4j exposed settings with names like the following. The unit types determine the probabilities and sampling rules used by the RBM.
 
 **weightInit**, or `weightInitialization` represents the starting value of the coefficients that amplify or mute the input signal coming into each node. Proper weight initialization can save you a lot of training time, because training a net is nothing more than adjusting the coefficients to transmit the best signals, which allow the net to classify accurately.
 
-**activationFunction** refers to one of a set of functions that determine the threshold(s) at each node above which a signal is passed through the node, and below which it is blocked. If a node passes the signal through, it is "activated."
+**activationFunction** determines how a weighted input becomes an activation. For a binary RBM unit, the sigmoid gives a probability; a separate sampling step determines the unit's state.
 
-**optimizationAlgo** refers to the manner by which a neural net minimizes error, or finds a locus of least error, as it adjusts its coefficients step by step. LBFGS, an acronym whose letters each refer to the last names of its multiple inventors, is an optimization algorithm that makes use of second-order derivatives to calculate the slope of gradient along which coefficients are adjusted.
+**optimizationAlgo** selects the optimizer used by a particular training routine. L-BFGS is a limited-memory quasi-Newton method: it approximates curvature from successive changes in parameters and gradients, without computing second derivatives directly. This optimizer setting is separate from how CD estimates an RBM's learning signal.
 
 **regularization** methods such as **l2** help fight overfitting in neural nets. Regularization essentially punishes large coefficients, since large coefficients by definition mean the net has learned to pin its results to a few heavily weighted inputs. Overly strong weights can make it difficult to generalize a net's model when exposed to new data.
 
 **VisibleUnit/HiddenUnit** refers to the layers of a neural net. The `VisibleUnit`, or layer, is the layer of nodes where input goes in, and the `HiddenUnit` is the layer where those inputs are recombined in more complex features. Both units have their own so-called transforms, in this case Gaussian for the visible and Rectified Linear for the hidden, which map the signal coming out of their respective layers onto a new space.
 
-**lossFunction** is the way you measure error, or the difference between your net's guesses and the correct labels contained in the test set. Here we use `SQUARED_ERROR`, which makes all errors positive so they can be summed and backpropagated.
+**lossFunction** may specify a reported reconstruction metric or the objective for later fine-tuning. A setting such as `SQUARED_ERROR` does not turn CD training into backpropagation of reconstruction error. Check which training stage an implementation applies it to.
 
 **learningRate**, like **momentum**, affects how much the neural net adjusts the coefficients on each iteration as it corrects for error. These two parameters help determine the size of the steps the net takes down the gradient towards a local optimum. A large learning rate will make the net learn fast, and maybe overshoot the optimum. A small learning rate will slow down the learning, which can be inefficient.
 
@@ -166,7 +158,7 @@ A continuous restricted Boltzmann machine is a form of RBM that accepts continuo
 
 It should be noted that every layer of a deep-learning net requires four elements: the input, the coefficients, a bias and the transform (activation algorithm).
 
-The input is the numeric data, a vector, fed to it from the previous layer (or as the original data). The coefficients are the weights given to various features that pass through each node layer. The bias ensures that some nodes in a layer will be activated no matter what. The transformation is an additional algorithm that squashes the data after it passes through each layer in a way that makes gradients easier to compute (and gradients are necessary for a net to learn).
+The input is a numeric vector, supplied by the previous layer or the original data. The weights and biases determine each unit's conditional distribution. The unit type specifies how values are sampled from that distribution.
 
 Those additional algorithms and their combinations can vary layer by layer.
 
@@ -176,7 +168,7 @@ Gaussian transformations do not work well on RBMs' hidden layers. The rectified-
 
 ### <a name="next">Conclusions & Next Steps</a>
 
-You can interpret RBMs' output numbers as percentages. Every time the number in the reconstruction is *not zero*, that's a good indication the RBM learned the input.
+For binary visible units, reconstruction probabilities lie between zero and one. A value of 0.8 means an 80% chance of that unit being on, given the hidden states. Nonzero values alone provide no evidence of successful training. Gaussian visible units instead produce real-valued samples or means, which are not percentages.
 
 It should be noted that RBMs do not produce the most stable, consistent results of all shallow, feedforward networks. In many situations, a dense-layer autoencoder works better. Indeed, the industry is moving toward tools such as [variational autoencoders and GANs](generative-adversarial-network-gan).
 

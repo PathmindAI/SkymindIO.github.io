@@ -14,8 +14,8 @@ Contents
 * [Backpropagation Through Time](#backpropagation)
 * [Vanishing and Exploding Gradients](#vanishing)
 * [Long Short-Term Memory Units (LSTMs)](#long)
-* [Capturing Diverse Time Scales](#capturing)
-* [Code Sample & Comments](#code)
+* [Capturing Diverse Time Scales](#time)
+* [LSTM Hyperparameter Tuning](#tuning)
 * [Resources](#resources)
 
 ## Introduction
@@ -172,19 +172,11 @@ A gated recurrent unit (GRU) is basically an LSTM without an output gate, which 
 
 ## <a name="tuning">LSTM Hyperparameter Tuning</a>
 
-Here are a few ideas to keep in mind when manually optimizing hyperparameters for RNNs:
+Watch out for *overfitting*: training performance can keep improving while predictions on new data get worse. Regularization, such as weight penalties or dropout, can help. Compare simpler and larger networks on validation data to learn whether extra capacity helps your task.
 
-* Watch out for *overfitting*, which happens when a neural network essentially "memorizes" the training data. Overfitting means you get great performance on training data, but the network's model is useless for out-of-sample prediction.
-* Regularization helps: regularization methods include l1, l2, and dropout among others.
-* So have a separate test set on which the network doesn't train.
-* The larger the network, the more powerful, but it's also easier to overfit. Don't want to try to learn a million parameters from 10,000 examples -- `parameters > examples = trouble`.
-* More data is almost always better, because it helps fight overfitting.
-* Train over multiple epochs (complete passes through the dataset).
-* Evaluate test set performance at each epoch to know when to stop (early stopping).
-* In general, stacking layers can help.
-* For LSTMs, use the softsign (not softmax) activation function over tanh (it's faster and less prone to saturation (~0 gradients)).
-* Updaters: RMSProp, AdaGrad or momentum (Nesterovs) are usually good choices. AdaGrad also decays the learning rate, which can help sometimes.
-* Finally, remember data normalization, MSE loss function + identity activation function for regression, Xavier weight initialization
+Use a **validation set** to choose hyperparameters and monitor early stopping across epochs (complete passes through the training data). Reserve a separate **test set** for the final evaluation. Using test results to decide when to stop leaks information into model selection. For forecasting, preserve time order so that evaluation measures predictions of later observations. See the [scikit-learn guide to validation and time-series splits](https://scikit-learn.org/stable/modules/cross_validation.html).
+
+Treat the learning rate and optimizer as choices to compare on validation data. The same applies to adding layers or changing an activation function. Fit normalization on training data, then apply that transformation to the held-out sets. For a regression task, mean squared error with a linear output is one starting point; choose the loss and output activation to suit the quantity you want to predict.
 
 ## <a name="resources">Resources</a>
 * [DRAW: A Recurrent Neural Network For Image Generation](http://arxiv.org/pdf/1502.04623v2.pdf); (attention models)
