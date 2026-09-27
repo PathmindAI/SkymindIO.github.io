@@ -27,6 +27,8 @@ jobs:
         with:
           source: ./
           destination: ./_site
+      - name: Allow search indexing in the generated site
+        run: sudo chown -R "$(id -u):$(id -g)" _site
       - name: Build search indexes
         run: python3 scripts/build_search.py _site
       - name: Check internal links and section destinations
