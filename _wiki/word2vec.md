@@ -160,7 +160,6 @@ Loading and saving GloVe models to word2vec can be done like so:
 
 * [Contextual Word Representations: A Contextual Introduction](https://arxiv.org/abs/1902.06006)
 * [Deep contextualized word representations](https://arxiv.org/abs/1802.05365)
-* [Thought Vectors, Natural Language Processing & the Future of AI](./thought-vectors){:target="_blank"}
 * [Quora: How Does Word2vec Work?](http://www.quora.com/How-does-word2vec-work){:target="_blank"}
 * [Quora: What Are Some Interesting Word2Vec Results?](http://www.quora.com/Word2vec/What-are-some-interesting-Word2Vec-results/answer/Omer-Levy){:target="_blank"}
 * [Word2Vec: an introduction](http://www.folgertkarsdorp.nl/word2vec-an-introduction/){:target="_blank"}; Folgert Karsdorp

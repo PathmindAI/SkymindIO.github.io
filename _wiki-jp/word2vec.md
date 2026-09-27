@@ -130,7 +130,6 @@ Word2vecは、[単語のベクトル表現を計算するメソッド](http://ar
 ### Doc2vec & その他のリソース
 
 * [Doc2vec, or Paragraph Vectors, With Deeplearning4j（Deeplearning4jを使ったDoc2vec、またはパラグラフベクトル）](doc2vec)
-* [Thought Vectors, Natural Language Processing & the Future of AI（思考ベクトル、自然言語処理、AIの未来）](thoughtvectors)
 * [Quora: How Does Word2vec Work?（Quora：Word2vecの仕組みはどうなっているの？）](http://www.quora.com/How-does-word2vec-work)
 * [Quora: What Are Some Interesting Word2Vec Results?（Quora：Word2Vecの面白い結果にはどんなものがあるの？）](http://www.quora.com/Word2vec/What-are-some-interesting-Word2Vec-results/answer/Omer-Levy)
 * [Word2Vec: an introduction（Word2Vecの紹介）](http://www.folgertkarsdorp.nl/word2vec-an-introduction/); Folgert Karsdorp

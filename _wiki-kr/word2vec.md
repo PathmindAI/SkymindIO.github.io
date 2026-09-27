@@ -133,7 +133,6 @@ Word2vec는 Tomas Mikolov를 비롯한 구글의 연구자들이 출판한 논�
 ### 학습 자료
 
 * [DL4J의 Doc2vec(문서 벡터), 또는 단락 벡터](../doc2vec)
-* [사고 벡터, 자연어 처리 & AI의 미래](../thoughtvectors)
 * [Quora: Word2vec의 작동 원리](http://www.quora.com/How-does-word2vec-work)
 * [Quora: Word2Vec을 이용한 재미있는 결과물](http://www.quora.com/Word2vec/What-are-some-interesting-Word2Vec-results/answer/Omer-Levy)
 * [Word2Vec 소개](http://www.folgertkarsdorp.nl/word2vec-an-introduction/); Folgert Karsdorp
