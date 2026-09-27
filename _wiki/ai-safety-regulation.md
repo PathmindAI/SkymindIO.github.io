@@ -1,6 +1,6 @@
 ---
 title: How to Regulate AI
-short_title: AI Regulation: Prospects & Limitations
+short_title: "AI Regulation: Prospects & Limitations"
 description: Regulating dual-use AI, AI bias and a potential superintelligence.
 ---
 

@@ -1,0 +1,27 @@
+<!doctype html>
+{% assign document_language = 'en' %}
+{% if page.collection == 'wiki-jp' %}{% assign document_language = 'ja' %}{% endif %}
+{% if page.collection == 'wiki-kr' %}{% assign document_language = 'ko' %}{% endif %}
+<html lang="{{ page.lang | default: document_language }}">
+<head>
+  {% include reader-head.html %}
+</head>
+<body id="top" class="{% if page.url == '/about/' %}personal-site{% else %}wiki-site{% endif %}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="site-name" href="/">Pathmind <span>AI Wiki</span></a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/"{% if page.url == '/' %} aria-current="page"{% endif %}>Wiki</a>
+      <a href="/about/"{% if page.url == '/about/' %} aria-current="page"{% endif %}>Chris V. Nicholson</a>
+      <button class="theme-toggle" type="button" hidden>Dark mode</button>
+    </nav>
+  </header>
+  {{ content }}
+  <footer class="site-footer">
+    <p>Copyright © 2026 <a href="/about/">Chris V. Nicholson</a><span class="rights">All rights reserved.</span></p>
+    <a href="#top">Back to top ↑</a>
+  </footer>
+  <script src="/theme.js" defer></script>
+  <script src="/reader.js" defer></script>
+</body>
+</html>

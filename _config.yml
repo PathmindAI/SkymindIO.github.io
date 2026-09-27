@@ -2,7 +2,8 @@ plugins:
   - jekyll-sitemap
 
 title : "Pathmind"
-description: Add Deep Reinforcement Learning to Simulation
+url: "https://wiki.pathmind.com"
+description: Guides to artificial intelligence, machine learning, and deep learning.
 author :
   name : Pathmind Inc.
   email : help@pathmind.com
