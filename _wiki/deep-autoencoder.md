@@ -4,7 +4,7 @@ short_title: Deep Autoencoders
 description: Multilayer (deep) symmetrical neural networks that create a representation of the input and reconstruct it.
 ---
 
-A deep autoencoder is composed of two, symmetrical [deep-belief networks](./deep-belief-network) that typically have four or five shallow layers representing the encoding half of the net, and second set of four or five layers that make up the decoding half.
+A deep autoencoder is composed of two, symmetrical deep-belief networks that typically have four or five shallow layers representing the encoding half of the net, and second set of four or five layers that make up the decoding half.
 
 The layers are [restricted Boltzmann machines](./restricted-boltzmann-machine), the building blocks of deep-belief networks, with several peculiarities that we'll discuss below. Here's a simplified schema of a deep autoencoder's structure, which we'll explain below.
 

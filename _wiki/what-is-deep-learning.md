@@ -7,7 +7,7 @@ Deep learning is shorthand for deep artificial neural networks.
 
 [Artificial neural networks](neural-network) are algorithms that roughly mimic the action of biological neurons in the brain, relaying signals and recognizing patterns to process data and make decisions about it. Deep learning can be used to classify, cluster or make quantitative predictions about numerically continuous data (regression).  
 
-There are many different types of neural network, often referred to as neural network architectures. Here are a few examples: feed-forward neural networks, [convolutional neural networks](), [recurrent neural networks](./lstm), autoencoders, and [deep belief networks](./deep-belief-network). On other pages, we explain those architectures, as well as their advantages and disadvantages.
+There are many different types of neural network, often referred to as neural network architectures. Here are a few examples: feed-forward neural networks, [convolutional neural networks](), [recurrent neural networks](./lstm), autoencoders, and deep belief networks. On other pages, we explain those architectures, as well as their advantages and disadvantages.
 
 While neural network algorithms are many decades old, deep learning was introduced 2006, when Geoff Hinton published the paper "A Fast Learning Algorithm for Deep Belief Nets". In that paper, Hinton described "a fast, greedy algorithm that can learn deep, directed belief networks one layer at a time."
 

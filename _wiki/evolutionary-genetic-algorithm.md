@@ -62,7 +62,7 @@ Spawn, cull, reproduce and mutate: That cycle is repeated until the function sur
 
 Take it a step further and you can substitute almost any algorithm for linear regression within the testing apparatus of a genetic algorithm, which is really just a search algorithm. For example, you can swap in neural networks, and seek the best structure or hyperparameters for the neural net; i.e. those that allow it to learn the most quickly. 
 
-One of the possible advantages of evolutionary algorithms over neural networks, at least for some problems, is that they do not require gradients; i.e. evolutionary algorithms can explore a parameter space in order to decrease error without depending on [backpropagation](./backpropagation) and [differentiation](./differentiableprogramming) that relates those weights to the error. This is important in environments where reward signals may be sparse and dependencies remote, or when you're dealing with discrete parameters, similar to genes, rather than continuous curves. 
+One of the possible advantages of evolutionary algorithms over neural networks, at least for some problems, is that they do not require gradients; i.e. evolutionary algorithms can explore a parameter space in order to decrease error without depending on [backpropagation](./backpropagation) and differentiation that relates those weights to the error. This is important in environments where reward signals may be sparse and dependencies remote, or when you're dealing with discrete parameters, similar to genes, rather than continuous curves.
 
 ## <a name="neural">Combining Neural Networks and Evolutionary Architectures</a>
 
