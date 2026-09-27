@@ -2,155 +2,201 @@
 title: A Beginner's Guide to LSTMs and Recurrent Neural Networks
 author: Chris V. Nicholson
 short_title: LSTMs & RNNs
-description: LSTMs are a powerful kind of RNN used for processing sequential data such as sound, time series (sensor) data or written natural language.
+description: How recurrent neural networks carry context through a sequence, with a worked character-prediction example and an explanation of LSTM memory and gates.
 ---
-
-> Data can only be understood backwards; but it must be lived forwards. — Søren Kierkegaard, Journals*
 
 Contents
 
 * [Feedforward Networks](#feedforward)
 * [Recurrent Networks](#recurrent)
+* [A Worked Recurrent Network](#worked-example)
+* [Inputs, Targets and Prediction Error](#training-example)
 * [Backpropagation Through Time](#backpropagation)
 * [Vanishing and Exploding Gradients](#vanishing)
 * [Long Short-Term Memory Units (LSTMs)](#long)
 * [Capturing Diverse Time Scales](#time)
+* [Gated Recurrent Units (GRUs)](#gru)
 * [LSTM Hyperparameter Tuning](#tuning)
 * [Resources](#resources)
 
 ## Introduction
 
-Recurrent neural networks, of which LSTMs ("long short-term memory" units) are the most powerful and well known subset, are a type of artificial neural network designed to recognize patterns in sequences of data, such as numerical times series data emanating from sensors, stock markets and government agencies (but also including text, genomes, handwriting and the spoken word). What differentiates RNNs and LSTMs from other neural networks is that they take time and sequence into account, they have a temporal dimension.
+A recurrent neural network (RNN) processes a sequence by carrying information from one step to the next. That information gives the current input a context: an earlier word can change how a later word is interpreted, and earlier sensor readings can help predict the next reading.
 
-The purpose of this post is to give students of neural networks an intuition about the functioning of recurrent neural networks and purpose and structure of LSTMs.
-
-Research shows them to be one of the most powerful and useful types of neural network, although recently they have been surpassed in language tasks by the [attention mechanism, transformers and memory networks](./attention-mechanism-memory-network). RNNs are applicable even to images, which can be decomposed into a series of patches and treated as a sequence. 
-
-Since recurrent networks possess a certain type of memory, and memory is also part of the human condition, we'll make repeated analogies to memory in the brain.<sup>[1](#one)</sup>
-
-<a class="w-button button-skilcta" href="https://www.pathmind.com" style="width:75%; margin-top: 15px;" target="_blank">Learn to build AI apps now >></a>
+Long short-term memory networks, or LSTMs, are RNNs with gates that control what their memory retains and exposes. We will first follow a small recurrent network through two characters, then examine how an LSTM changes the memory mechanism.
 
 ## <a name="feedforward">Review of Feedforward Networks</a>
 
-To understand recurrent nets, first you have to understand the basics of [feedforward nets](./restricted-boltzmann-machine). Both of these networks are named after the way they channel information through a series of mathematical operations performed at the nodes of the network. One feeds information straight through (never touching a given node twice), while the other cycles it through a loop, and the latter are called recurrent.
+A [feedforward network](./multilayer-perceptron) transforms its input through a succession of layers. An image classifier, for example, turns the pixels of a photograph into scores for categories such as cat or elephant. A regression network can instead produce a continuous quantity, such as tomorrow's temperature.
 
-In the case of feedforward networks, input examples are fed to the network and transformed into an output; with supervised learning, the output would be a label, a name applied to the input. That is, they map raw data to categories, recognizing patterns that may signal, for example, that an input image should be labeled "cat" or "elephant."
+![A feedforward network connects inputs to hidden units and outputs.](/images/wiki/feedforward_rumelhart.png)
 
-![Alt text](/images/wiki/feedforward_rumelhart.png)
-
-A feedforward network is trained on labeled images until it minimizes the error it makes when guessing their categories. With the trained set of parameters (or weights, collectively known as a model), the network sallies forth to categorize data it has never seen. A trained feedforward network can be exposed to any random collection of photographs, and the first photograph it is exposed to will not necessarily alter how it classifies the second. Seeing photograph of a cat will not lead the net to perceive an elephant next.
-
-That is, a feedforward network has no notion of order in time, and the only input it considers is the current example it has been exposed to. Feedforward networks are amnesiacs regarding their recent past; they remember nostalgically only the formative moments of training.
+An ordinary feedforward network processes each supplied example without carrying a hidden state over from the previous example. We can give it a fixed window of past observations as part of its input. A recurrent network builds that connection into its computation: it updates a state as each observation arrives.
 
 ## <a name="recurrent">Recurrent Neural Networks</a>
 
-Recurrent networks, on the other hand, take as their input not just the current input example they see, but also what they have perceived previously in time. Here's a diagram of an early, [simple recurrent net proposed by Elman](https://web.stanford.edu/group/pdplab/pdphandbook/handbookch8.html), where the *BTSXPE* at the bottom of the drawing represents the input example in the current moment, and *CONTEXT UNIT* represents the output of the previous moment.
+Imagine hearing the sounds "Hi Jack!" near Jack's house and then hearing them on an airplane. The preceding situation changes the interpretation. A recurrent network carries its own numerical context, called a **hidden state**, through the sequence it is processing.
 
-![Alt text](/images/wiki/srn_elman.png)
+At each step, the network combines the current input with its previous hidden state to compute a new hidden state. A separate output layer can use that state to predict the next character or classify the sequence. The state can carry information that is useful later even when the current prediction does not expose it.
 
-The decision a recurrent net reached at time step `t-1` affects the decision it will reach one moment later at time step `t`. So recurrent networks have two sources of input, the present and the recent past, which combine to determine how they respond to new data, much as we do in life.
+The network's **weights** and **state** change on different schedules. Training adjusts the weights across examples. During ordinary prediction, those weights stay fixed while the hidden state changes with each new input. We normally reset the state at the boundary between independent sequences; we can carry it forward when a sequence continues in another chunk.
 
-Recurrent networks are distinguished from feedforward networks by that feedback loop connected to their past decisions, ingesting their own outputs moment after moment as input. It is often said that recurrent networks have memory.<sup>[2](#two)</sup> Adding memory to neural networks has a purpose: There is information in the sequence itself, and recurrent nets use it to perform tasks that feedforward networks can't.
+![An Elman recurrent network carries hidden activations through context units.](/images/wiki/srn_elman.png)
 
-That sequential information is preserved in the recurrent network's hidden state, which manages to span many time steps as it cascades forward to affect the processing of each new example. It is finding correlations between events separated by many moments, and these correlations are called "long-term dependencies", because an event downstream in time depends upon, and is a function of, one or more events that came before. One way to think about RNNs is this: they are a way to share weights over time.
+In this [Elman network diagram](https://web.stanford.edu/group/pdplab/pdphandbook/handbookch8.html), the context units carry the previous hidden activations. For a simple recurrent layer, we can write the update as:
 
-Just as human memory circulates invisibly within a body, affecting our behavior without revealing its full shape, information circulates in the hidden states of recurrent nets. The English language is full of words that describe the feedback loops of memory. When we say a person is haunted by their deeds, for example, we are simply talking about the consequences that past outputs wreak on present time. The French call this "*Le passé qui ne passe pas*," or "The past that does not pass away."
+```text
+h_t = tanh(W_x x_t + W_h h_(t-1) + b_h)
+```
 
-We'll describe the process of carrying memory forward mathematically:
+Here `x_t` is the current input vector and `h_(t-1)` is the previous hidden state. The matrices `W_x` and `W_h` weight their contributions; `b_h` is a learned offset. The same parameters are used at every step. The nonlinear function `tanh` maps each resulting value between -1 and 1. The [PyTorch RNN documentation](https://docs.pytorch.org/docs/stable/generated/torch.nn.RNN.html) gives this recurrence and its input conventions.
 
-![Alt text](/images/wiki/recurrent_equation.png)
+For next-character prediction, an output layer turns `h_t` into one score per possible next character. Softmax converts those scores into probabilities:
 
-The hidden state at time step t is `h_t`. It is a function of the input at the same time step `x_t`, modified by a weight matrix `W` (like the one we used for feedforward nets) added to the hidden state of the previous time step `h_t-1` multiplied by its own hidden-state-to-hidden-state matrix `U`, otherwise known as a transition matrix and similar to a Markov chain. The weight matrices are filters that determine how much importance to accord to both the present input and the past hidden state. The error they generate will return via backpropagation and be used to adjust their weights until error can't go any lower.
+```text
+z_t = W_y h_t + b_y
+p_t[j] = exp(z_t[j]) / sum_k exp(z_t[k])
+```
 
-The sum of the weight input and hidden state is squashed by the function `φ` -- either a logistic sigmoid function or tanh, depending -- which is a standard tool for condensing very large or very small values into a logistic space, as well as making gradients workable for backpropagation.
+The hidden state `h_t` and the prediction `p_t` have different jobs and can have different sizes. A recurrent model can make a prediction at every step, or use its final state to make one prediction about the whole sequence.
 
-Because this feedback loop occurs at every time step in the series, each hidden state contains traces not only of the previous hidden state, but also of all those that preceded `h_t-1` for as long as memory can persist.
+### <a name="worked-example">Following Two Characters Through a Recurrent State</a>
 
-Given a series of letters, a recurrent network *will* use the first character to help determine its perception of the second character, such that an initial `q` might lead it to infer that the next letter will be `u`, while an initial `t` might lead it to infer that the next letter will be `h`.
+Take a vocabulary of three symbols, `[a, b, <end>]`, where `<end>` marks the end of a sequence. A one-hot encoding gives each symbol its own position: `a = [1, 0, 0]`, `b = [0, 1, 0]`, and `<end> = [0, 0, 1]`.
 
-Since recurrent nets span time, they are probably best illustrated with animation (the first vertical line of nodes to appear can be thought of as a feedforward network, which becomes recurrent as it unfurls over time).
+Our demonstration network has one hidden value, starts at `h_0 = 0`, and uses these hand-chosen weights:
 
-{::nomarkdown}
-<blockquote class="imgur-embed-pub" lang="en" data-id="kpZBDfV"><a href="//imgur.com/kpZBDfV">how recurrent neural networks work</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-{:/nomarkdown}
+```text
+W_x = [[1, 0, 0]]  shape: (1, 3)
+W_h = [[0.5]]      shape: (1, 1)
+b_h = 0
+```
 
-In the [diagram above](http://imgur.com/kpZBDfV), each `x` is an input example, `w` is the weights that filter inputs, `a` is the activation of the hidden layer (a combination of weighted input and the previous hidden state), and `b` is the output of the hidden layer after it has been transformed, or squashed, using a rectified linear or sigmoid unit.
+The input contributes 1 for `a` and 0 for either other symbol. At every step, we add half the previous state and apply `tanh`.
+
+| Sequence | State after the first character | State after the second character |
+| --- | --- | --- |
+| `ab` | `tanh(1 + 0.5 × 0) = 0.761594` | `tanh(0 + 0.5 × 0.761594) = 0.363399` |
+| `ba` | `tanh(0 + 0.5 × 0) = 0` | `tanh(1 + 0.5 × 0) = 0.761594` |
+
+Both sequences contain the same characters. Their final states differ because the first state changes the calculation at the second step. The weights stay the same throughout both runs.
+
+### <a name="training-example">Inputs, Targets and Prediction Error</a>
+
+To train on the sequence `ab<end>`, shift the targets one position ahead of the inputs:
+
+| Step | Input | Target: the next symbol |
+| --- | --- | --- |
+| 1 | `a` | `b` |
+| 2 | `b` | `<end>` |
+
+These targets come from the sequence itself. Next-character prediction has a target at each step even though a person does not have to annotate the text with separate labels.
+
+For this example, use the axis order **batch, time, features**. One two-step sequence with three input features has shape `(1, 2, 3)`. Its hidden states have shape `(1, 2, 1)`. The output probabilities and one-hot targets each have shape `(1, 2, 3)`; batched integer targets `[[1, 2]]`, using the vocabulary's zero-based indices, instead have shape `(1, 2)`. Libraries differ in their default axis order, so check the API when loading data.
+
+Choose an output matrix `W_y = [[-1], [1], [0]]`, with shape `(3, 1)`, and zero output biases. Its scores are `[-h_t, h_t, 0]`. After reading `a`, the state is `0.761594`, and softmax assigns probabilities of approximately `0.129391` to `a`, `0.593494` to `b`, and `0.277115` to `<end>`.
+
+The target is `b`. Its cross-entropy loss is `-log(p(b))`, using the natural logarithm, or about `0.522`. The most probable symbol is correct, but the loss still measures how much probability the model assigned to that target. At the second step, the target is `<end>`; the same output weights favor `b`, so the model makes a wrong prediction. Training uses the losses across the sequence.
+
+This Python example reproduces the states and predictions using only the standard library. Its weights are chosen to expose the calculation; it does not train a language model.
+
+```python
+from math import exp, log, tanh
+
+vocab = ("a", "b", "<end>")
+input_weight = {"a": 1.0, "b": 0.0, "<end>": 0.0}
+
+
+def hidden_states(sequence):
+    h = 0.0
+    states = []
+    for symbol in sequence:
+        h = tanh(input_weight[symbol] + 0.5 * h)
+        states.append(h)
+    return states
+
+
+def probabilities(h):
+    scores = (-h, h, 0.0)
+    largest = max(scores)
+    values = [exp(score - largest) for score in scores]
+    return [value / sum(values) for value in values]
+
+
+for sequence in ("ab", "ba"):
+    print(sequence, [round(h, 6) for h in hidden_states(sequence)])
+
+for symbol, target, h in zip(("a", "b"), ("b", "<end>"),
+                             hidden_states("ab")):
+    p = probabilities(h)
+    loss = -log(p[vocab.index(target)])
+    prediction = vocab[max(range(len(p)), key=p.__getitem__)]
+    print(symbol, "target:", target, "prediction:", prediction,
+          "probabilities:", [round(value, 6) for value in p],
+          "loss:", round(loss, 6))
+```
 
 ## <a name="backpropagation">Backpropagation Through Time (BPTT)</a>
 
-Remember, the purpose of recurrent nets is to accurately classify sequential input. We rely on the backpropagation of error and gradient descent to do so.
+Training uses the prediction loss to calculate how each parameter contributed to the error. For softmax followed by cross-entropy, the derivative with respect to each output score is its predicted probability minus its target indicator, which is 1 for the correct symbol and 0 for the others.
 
-{% include wiki-inline-cta.html %}
+Considering the first step's loss alone, the derivative for `b`'s score is approximately `0.593494 - 1 = -0.406506`. A gradient-descent update subtracts the derivative times a learning rate, so this contribution pushes `b`'s output bias upward. The derivatives for the other two scores are positive, pushing their biases down. The output weights also receive gradients through their connection to the hidden state. Training on the whole sequence combines these contributions with those from the second step.
 
-Backpropagation in feedforward networks moves backward from the final error through the outputs, weights and inputs of each hidden layer, assigning those weights responsibility for a portion of the error by calculating their partial derivatives -- *∂E/∂w*, or the relationship between their rates of change. Those derivatives are then used by our learning rule, gradient descent, to adjust the weights up or down, whichever direction decreases error.
-
-Recurrent networks rely on an extension of backpropagation called [backpropagation through time](https://www.cs.cmu.edu/~bhiksha/courses/deeplearning/Fall.2015/pdfs/Werbos.backprop.pdf), or BPTT. Time, in this case, is simply expressed by a well-defined, ordered series of calculations linking one time step to the next, which is all backpropagation needs to work.
-
-Neural networks, whether they are recurrent or not, are simply nested composite functions like `f(g(h(x)))`. Adding a time element only extends the series of functions for which we calculate derivatives with the chain rule.
+The loss at the second step depends on `h_2`, which depends on `h_1`. [Backpropagation through time](https://www.cs.cmu.edu/~bhiksha/courses/deeplearning/Fall.2015/pdfs/Werbos.backprop.pdf) follows those connections backward using the chain rule. Because the recurrent weights are shared across steps, their gradient accumulates contributions from each use. An optimizer then updates the weights and biases. Those updated parameters govern the next forward pass.
 
 ### Truncated BPTT
 
-[Truncated BPTT](http://www.cs.utoronto.ca/~ilya/pubs/ilya_sutskever_phd_thesis.pdf) is an approximation of full BPTT that is preferred for long sequences, since full BPTT's forward/backward cost per parameter update becomes very high over many time steps. The downside is that the gradient can only flow back so far due to that truncation, so the network can't learn dependencies that are as long as in full BPTT.
+Long sequences can require too much memory to retain every intermediate calculation for a backward pass. Truncated BPTT limits that pass to a shorter window. A model can carry its hidden state into the next window while detaching it from the earlier computation, so information can continue forward even though gradients stop at the boundary. That limits how far a later loss can directly train an earlier computation. [Ilya Sutskever's dissertation](https://www.cs.utoronto.ca/~ilya/pubs/ilya_sutskever_phd_thesis.pdf) discusses training recurrent networks.
 
-## <a name="vanishing">Vanishing (and Exploding) Gradients</a>
+## <a name="vanishing">Vanishing and Exploding Gradients</a>
 
-Like most neural networks, recurrent nets are old. By the early 1990s, the *vanishing gradient problem* emerged as a major obstacle to recurrent net performance.
+When training follows a recurrent state backward through many steps, it repeatedly multiplies derivatives. Products of small factors can shrink toward zero, leaving an early input with very little influence on the weight update. Large factors can make the gradients grow enough to destabilize training. These are the vanishing and exploding gradient problems.
 
-Just as a straight line expresses a change in x alongside a change in y, the *gradient* expresses the change in all weights with regard to the change in error. If we can't know the gradient, we can't adjust the weights in a direction that will decrease error, and our network ceases to learn.
+Our one-value network makes the shrinking visible. The derivative of the new state with respect to the previous state is `0.5 × (1 - h_t²)`, whose magnitude is at most `0.5`. Across ten steps, the product along that recurrent path is at most `0.5^10`, about `0.00098`. The state can still carry information forward while the training signal reaching earlier steps becomes small.
 
-Recurrent nets seeking to establish connections between a final output and events many time steps before were hobbled, because it is very difficult to know how much importance to accord to remote inputs. (Like great-great-*-grandparents, they multiply quickly in number and their legacy is often obscure.)
+![Repeated sigmoid transformations flatten much of the curve, illustrating how small derivatives can compound.](/images/wiki/sigmoid_vanishing_gradient.png)
 
-This is partially because the information flowing through neural nets passes through many stages of multiplication.
-
-Everyone who has studied compound interest knows that any quantity multiplied frequently by an amount slightly greater than one can become immeasurably large (indeed, that simple mathematical truth underpins network effects and inevitable social inequalities). But its inverse, multiplying by a quantity less than one, is also true. Gamblers go bankrupt fast when they win just 97 cents on every dollar they put in the slots.
-
-Because the layers and time steps of deep neural networks relate to each other through multiplication, derivatives are susceptible to vanishing or exploding.
-
-Exploding gradients treat every weight as though it were the proverbial butterfly whose flapping wings cause a distant hurricane. Those weights' gradients become saturated on the high end; i.e. they are presumed to be too powerful. But exploding gradients can be solved relatively easily, because they can be truncated or squashed. Vanishing gradients can become too small for computers to work with or for networks to learn -- a harder problem to solve.
-
-Below you see the effects of applying a sigmoid function over and over again. The data is flattened until, for large stretches, it has no detectable slope. This is analogous to a gradient vanishing as it passes through many layers.
-
-![Alt text](/images/wiki/sigmoid_vanishing_gradient.png)
+Gradient clipping limits the size of an update's gradient and can help with exploding gradients. It does not restore a gradient that has already vanished. LSTMs change the recurrent computation to provide a more direct path for retaining state and passing gradients through time.
 
 ## <a name="long">Long Short-Term Memory Units (LSTMs)</a>
 
-In the mid-90s, a variation of recurrent net with so-called Long Short-Term Memory units, or LSTMs, was proposed by the German researchers Sepp Hochreiter and Juergen Schmidhuber as a solution to the vanishing gradient problem.
+Sepp Hochreiter and Jürgen Schmidhuber introduced LSTM in their [1997 paper](https://www.bioinf.jku.at/publications/older/2604.pdf). The commonly used version described here includes a forget gate, added in later work.
 
-LSTMs help preserve the error that can be backpropagated through time and layers. By maintaining a more constant error, they allow recurrent nets to continue to learn over many time steps (over 1000), thereby opening a channel to link causes and effects remotely. This is one of the central challenges to machine learning and AI, since algorithms are frequently confronted by environments where reward signals are sparse and delayed, such as life itself. (Religious thinkers have tackled this same problem with ideas of karma or divine reward, theorizing invisible and distant consequences to our actions.)
+An LSTM carries a **cell state**, `c_t`, alongside its **hidden state**, `h_t`. The cell state holds information that can persist across steps. The hidden state exposes a gated transformation of that information to the next layer or an output predictor, and also helps compute the next step's gates.
 
-LSTMs contain information outside the normal flow of the recurrent network in a gated cell. Information can be stored in, written to, or read from a cell, much like data in a computer's memory. The cell makes decisions about what to store, and when to allow reads, writes and erasures, via gates that open and close. Unlike the digital storage on computers, however, these gates are analog, implemented with element-wise multiplication by sigmoids, which are all in the range of 0-1. Analog has the advantage over digital of being differentiable, and therefore suitable for backpropagation.
+A gate produces a vector of values between 0 and 1. Multiplying a signal by a gate scales each component separately: a value near 0 largely suppresses it, while a value near 1 largely preserves it. The gates can be partly open.
 
-Those gates act on the signals they receive, and similar to the neural network's nodes, they block or pass on information based on its strength and import, which they filter with their own sets of weights. Those weights, like the weights that modulate input and hidden states, are adjusted via the recurrent networks learning process. That is, the cells learn when to allow data to enter, leave or be deleted through the iterative process of making guesses, backpropagating error, and adjusting weights via gradient descent.
+| Gate | What it controls |
+| --- | --- |
+| Forget gate `f_t` | How much of the previous cell state to retain |
+| Input gate `i_t` | How much of the proposed new content to write |
+| Output gate `o_t` | How much of the transformed cell state to expose as the hidden state |
 
-The diagram below illustrates how data flows through a memory cell and is controlled by its gates.
+In the LSTM variant below, each gate uses the current input `x_t` and previous hidden state `h_(t-1)`. Each has its own learned weights and bias. The candidate content `g_t` uses the same inputs with a `tanh` activation. Here `sigmoid` produces values between 0 and 1, and `*` means element-by-element multiplication:
 
-![Alt text](/images/wiki/gers_lstm.png)
+```text
+f_t = sigmoid(W_f x_t + U_f h_(t-1) + b_f)
+i_t = sigmoid(W_i x_t + U_i h_(t-1) + b_i)
+o_t = sigmoid(W_o x_t + U_o h_(t-1) + b_o)
+g_t = tanh(W_g x_t + U_g h_(t-1) + b_g)
 
-There are a lot of moving parts here, so if you are new to LSTMs, don't rush this diagram -- contemplate it. After a few minutes, it will begin to reveal its secrets.
+c_t = f_t * c_(t-1) + i_t * g_t
+h_t = o_t * tanh(c_t)
+```
 
-Starting from the bottom, the triple arrows show where information flows into the cell at multiple points. That combination of present input and past cell state is fed not only to the cell itself, but also to each of its three gates, which will decide how the input will be handled.
+These are the state updates documented in the [PyTorch LSTM reference](https://docs.pytorch.org/docs/stable/generated/torch.nn.LSTM.html). The forget gate is computed with a sigmoid. When it is close to 1, multiplication carries almost all of the previous cell state forward.
 
-The black dots are the gates themselves, which determine respectively whether to let new input in, erase the present cell state, and/or let that state impact the network's output at the present time step. `S_c` is the current state of the memory cell, and `g_y_in` is the current input to it. Remember that each gate can be open or shut, and they will recombine their open and shut states at each step. The cell can forget its state, or not; be written to, or not; and be read from, or not, at each time step, and those flows are represented here.
+For one component, suppose the previous cell state is `0.8`, the forget gate is `0.9`, the input gate is `0.2`, and the candidate content is `-0.5`. The new cell state is:
 
-The large bold letters give us the result of each operation.
+```text
+c_t = 0.9 × 0.8 + 0.2 × (-0.5) = 0.62
+```
 
-Here's another diagram for good measure, comparing a simple recurrent network (left) to an LSTM cell (right). The blue lines can be ignored; the legend is helpful.
+If the output gate is `0.5`, the corresponding hidden value is `0.5 × tanh(0.62)`, approximately `0.276`. The cell retains `0.62` while exposing `0.276`. Closing the output gate would suppress that exposure without itself erasing the cell state.
 
-![Alt text](/images/wiki/greff_lstm_diagram.png)
+The addition in the cell update gives retained information a direct path to the next step. Holding the gate values fixed, the derivative along that path is `f_t`. When forget gates remain near 1, this path can carry gradients across many steps with less shrinkage. Other paths also contribute to the full gradient; an LSTM's ability to learn a long dependency still depends on training and the data.
 
-It's important to note that LSTMs' memory cells give different roles to addition and multiplication in the transformation of input. The central **plus sign** in both diagrams is essentially the secret of LSTMs. Stupidly simple as it may seem, this basic change helps them preserve a constant error when it must be backpropagated at depth. Instead of determining the subsequent cell state by multiplying its current state with new input, they add the two, and that quite literally makes the difference. (The forget gate still relies on multiplication, of course.)
-
-Different sets of weights filter the input for input, output and forgetting. The forget gate is represented as a linear identity function, because if the gate is open, the current state of the memory cell is simply multiplied by one, to propagate forward one more time step.
-
-Furthermore, while we're on the topic of simple hacks, [including a bias of 1](http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf) to the forget gate of every LSTM cell is also shown to [improve performance](http://www.felixgers.de/papers/phd.pdf). (*Sutskever, on the other hand, recommends a bias of 5.*)  
-
-You may wonder why LSTMs have a forget gate when their purpose is to link distant occurrences to a final output. Well, sometimes it's good to forget. If you're analyzing a text corpus and come to the end of a document, for example, you may have no reason to believe that the next document has any relationship to it whatsoever, and therefore the memory cell should be set to zero before the net ingests the first element of the next document.
-
-In the diagram below, you can see the gates at work, with straight lines representing closed gates, and blank circles representing open ones. The lines and circles running horizontal down the hidden layer are the forget gates.
-
-![Alt text](/images/wiki/gates_lstm.png)
-
-It should be noted that while feedforward networks map one input to one output, recurrent nets can map one to many, as above (one image to many words in a caption), many to many (translation), or many to one (classifying a voice).
+Resetting states between unrelated documents is a separate choice made by the program running the model. Within a document, the learned gates control how much context to retain as the sequence unfolds.
 
 ## <a name="time">Capturing Diverse Time Scales and Remote Dependencies</a>
 
@@ -164,11 +210,11 @@ If this human is also a diligent daughter, then maybe we can construct a familia
 
 Other data is like that. Music is polyrhythmic. Text contains recurrent themes at varying intervals. Stock markets and economies experience jitters within longer waves. They operate simultaneously on different time scales that LSTMs can capture.
 
-### Gated Recurrent Units (GRUs)
+### <a name="gru">Gated Recurrent Units (GRUs)</a>
 
-A gated recurrent unit (GRU) is basically an LSTM without an output gate, which therefore fully writes the contents from its memory cell to the larger net at each time step.
+A gated recurrent unit (GRU) keeps a single hidden state. Its update gate controls the mixture of retained state and candidate content, while its reset gate controls how the previous state contributes to the candidate. A standard GRU has no separate cell state or output gate. The [comparison by Chung and colleagues](https://arxiv.org/abs/1412.3555) describes both architectures and evaluates them on sequence-modeling tasks.
 
-![Alt text](/images/wiki/lstm_gru.png)
+![Diagrams comparing the gates and state paths in an LSTM and a GRU.](/images/wiki/lstm_gru.png)
 
 ## <a name="tuning">LSTM Hyperparameter Tuning</a>
 
@@ -207,11 +253,3 @@ Treat the learning rate and optimizer as choices to compare on validation data. 
 * [Generative Adversarial Networks (GANs)](/generative-adversarial-network-gan)
 * [AI vs Machine Learning vs Deep Learning](/ai-vs-machine-learning-vs-deep-learning)
 * [Multilayer Perceptrons (MLPs)](/multilayer-perceptron)
-
-### Footnotes
-
-* *Actually, Søren Kierkegaard didn't quite say that: instead of "data", he used the word "life". But for an algorithm, the two words are interchangeable, and it's the algorithm's understanding that we care about.*
-
-<a name="one">1)</a> *While recurrent networks may seem like a far cry from general artificial intelligence, it's our belief that intelligence, in fact, is probably dumber than we thought. That is, with a simple feedback loop to serve as memory, we have one of the basic ingredients of consciousness -- a necessary but insufficient component. Others, not discussed  above, might include additional variables that represent the network and its state, and a framework for decisionmaking logic based on interpretations of data. The latter, ideally, would be part of a larger problem-solving loop that rewards success and punishes failure, much like reinforcement learning. Come to think of it, [DeepMind already built that](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf)...*
-
-<a name="two">2)</a> *All neural networks whose parameters have been optimized have memory in a sense, because those parameters are the traces of past data. But in feedforward networks, that memory may be frozen in time. That is, after a network is trained, the model it learns may be applied to more data without further adapting itself. In addition, it is monolithic in the sense that the same memory (or set of weights) is applied to all incoming data. Recurrent networks, which also go by the name of dynamic (translation: "changing") neural networks, are distinguished from feedforward nets not so much by having memory as by giving particular weight to events that occur in a series. While those events do not  need to follow each other immediately, they are presumed to be linked, however remotely, by the same temporal thread. Feedforward nets do not make such a presumption. They treat the world as a bucket of objects without order or time. It may be helpful to map two types of neural network to two types of human knowledge. When we are children, we learn to recognize colors, and we go through the rest of our lives recognizing colors wherever we see them, in highly varied contexts and independent of time. We only had to learn the colors once. That knowledge is like memory in feedforward nets; they rely on a past without scope, undefined. Ask them what colors they were fed five minutes ago and they don't know or care. They are short-term amnesiacs. On the other hand, we also learn as children to decipher the flow of sound called language, and the meanings we extract from sounds such as "toe" or "roe" or "z" are always highly dependent on the sounds preceding (and following) them. Each step of the sequence builds on what went before, and meaning emerges from their order. Indeed, whole sentences conspire to convey the meaning of each syllable within them, their redundant signals acting as a protection against ambient noise. That is similar to the memory of recurrent nets, which look to a particular slice of the past for help. Both types of nets bring the past, or different pasts, to bear in different ways.*
