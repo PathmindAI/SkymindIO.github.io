@@ -51,66 +51,30 @@ house_price_estimate = a * square_footage + b
 ```
 Multiple Linear Regression would take other variables into account, such as the distance between the house and a good public school, the age of the house, etc.  
 
-The reason why we're dealing with y-hat, an estimate about the real value of y, is because linear regression is a formula used to estimate real values, and error is inevitable. Linear regression is often used to "fit" a scatter plot of given x-y pairs. A good fit minimizes the error between y-hat and the actual y; that is, choosing the right a and b will minimize the sum of the differences between each y and its respective y-hat.  
+To fit a line to a scatter plot, compare its prediction `ŷ` with each observed `y`. The difference `y - ŷ` is called a residual. Ordinary least squares chooses `a` and `b` to minimize the sum of **squared residuals**:
+
+```
+sum_of_squared_residuals = Σ (y - ŷ)²
+```
+
+Residuals of `+3` and `-3` add to `0`, even though both predictions miss by 3. Their squares add to `3² + (-3)² = 9 + 9 = 18`. Squaring prevents opposite errors from canceling and gives larger misses more weight. See [scikit-learn's least-squares explanation](https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares).
 
 That scatter plot of data points may look like a baguette -- long in one direction and short in another -- in which case linear regression may achieve a fit. (If the data points look like a meandering river, a straight line is probably not the right function to use to make predictions.)
 
 ![scatter plot](/images/wiki/scatterplot.png)
 
-Testing one line after another against the data points of the scatter plot, and automatically correcting it in order to minimize the sum of differences between the line and the points, could be thought of as machine learning in its simplest form.
-
 <a class="w-button button-skilcta" href="https://www.pathmind.com" style="width:75%; margin-top: 15px;" target="_blank">Apply AI to Business Simulations >></a>
 
 ## Logistic Regression
 
-Let's analyze the name first. [Logistic regression](logistic-regression) is not really regression, not in the sense of linear regression, which predicts continuous numerical values. (And it has nothing to do with logistics. ;)
-
-Logistic regression does not do that. It's actually a binomial classifier that acts like a light switch. A light switch essentially has two states, on and off. Logistic regression takes input data and classifies it as `category` or `not_category`, on or off expressed as 1 or 0, based on the strength of the input's signal. So it's a light switch for signal that you find in the data. If you want to mix the metaphor, it's actually more like a transistor, since it both amplifies and gates the signal. More on that [here](logistic-regression).
-
-Logistic regression takes input data and *squishes* it, so that no matter what the range of the input is, it will be compressed into the space between 1 and 0. Notice, in the image below, no matter how large the input `x` becomes, the output `y` cannot exceed 1, which it asymptotically approaches, and no matter low `x` is, `y` cannot fall below 0. That's how logistic regression compresses input data into a range between 0 and 1, through this s-shaped, sigmoidal transform.
-
-![logistic regression](/images/wiki/logistic_regression.jpg)
+[Binary logistic regression](logistic-regression) turns a weighted input score into an estimated class probability with an S-shaped sigmoid function. A decision threshold converts that probability into a class prediction, like an on-off switch controlled by a smooth signal.
 
 ## Decision Tree
 
-*Decision*, or *decide*, stems from the Latin *decidere*, which itself is the combination of "de" (off) and "caedere" (to cut). So decision is about the cutting off of possibilities. Decision trees can be used to classify data, and they cut off possibilities of what a given instance of data might be by examining a data point's features. Is it bigger than a bread box? Well, then it's not a marble. Is it alive? Well, then it's not a bicycle. Think of a decision as a game of 20 questions that an algorithm is asking about the data point under examination.
-
-A decision tree is a series of nodes, a directional graph that starts at the base with a single node and extends to the many leaf nodes that represent the categories that the tree can classify. Another way to think of a decision tree is as a flow chart, where the flow starts at the root node and ends with a decision made at the leaves. It is a decision-support tool. It uses a tree-like graph to show the predictions that result from a series of feature-based splits.
-
-![decision tree](/images/wiki/decision_tree.png)
-
-Here are some useful terms for describing a decision tree:
-
-* Root Node: A root node is at the beginning of a tree. It represents entire population being analyzed. From the root node, the population is divided according to various features, and those sub-groups are split in turn at each decision node under the root node.
-* Splitting: It is a process of dividing a node into two or more sub-nodes.
-* Decision Node: When a sub-node splits into further sub-nodes, it's a decision node.
-* Leaf Node or Terminal Node: Nodes that do not split are called leaf or terminal nodes.
-* Pruning: Removing the sub-nodes of a parent node is called pruning. A tree is grown through splitting and shrunk through pruning.  
-* Branch or Sub-Tree: A sub-section of decision tree is called branch or a sub-tree, just as a portion of a graph is called a sub-graph.
-* Parent Node and Child Node: These are relative terms. Any node that falls under another node is a child node or sub-node, and any node which precedes those child nodes is called a parent node.
-
-![decision tree nodes](/images/wiki/decision_tree_nodes.png)
-
-Decision trees are a popular algorithm for several reasons:
-
-* Explanatory Power: The output of decision trees is interpretable. It can be understood by people without analytical or mathematical backgrounds. It does not require any statistical knowledge to interpret them.
-* Exploratory data analysis: Decision trees can enable analysts to identify significant variables and important relations between two or more variables, helping to surface the signal contained by many input variables.
-* Minimal data cleaning: Because decision trees are resilient to outliers and missing values, they require less data cleaning than some other algorithms.
-* Any data type: Decision trees can make classifications based on both numerical and categorical variables.
-* Non-parametric: A decision tree is a non-parametric algorithm, as opposed to neural networks, which process input data transformed into a tensor, via tensor multiplication using large number of coefficients, known as parameters.
-
-**Disadvantages**
-
-* Overfitting: Over fitting is a common flaw of decision trees. Setting constraints on model parameters and making the model simpler through pruning are two ways to regularize a decision tree.
-* Predicting continuous variables: While decision trees can ingest continuous numerical input, they are not a practical way to predict such values, since decision-tree predictions must be separated into discrete categories, which results in a loss of information when applying the model to continuous values.
-* Heavy feature engineering: The flip side of a decision tree's explanatory power is that it requires heavy feature engineering. When dealing with unstructured data or data with latent factors, this makes decision trees sub-optimal. Neural networks are clearly superior in this regard.
+A [decision tree](decision-tree) asks a sequence of questions about an input's features, like a game of 20 questions. Each answer sends the input down a branch until it reaches a leaf, which supplies a prediction. Classification trees predict categories; regression trees predict numerical values such as house prices. A regression tree trained with squared error predicts the mean target value of the training examples in each leaf.
 
 ## <a name="random">Random Forest</a>
 
-Random forests are made of many decision trees. They are ensembles of decision trees, each decision tree created by using a subset of the attributes used to classify a given population (they are sub-trees, see above). Those decision trees vote on how to classify a given instance of input data, and the random forest bootstraps those votes to choose the best prediction. This is done to prevent overfitting, a common flaw of decision trees.
+Random forests combine many [decision trees](decision-tree) for classification or regression. Each tree typically learns from a bootstrap sample: training rows drawn with replacement, so some rows appear more than once. At each split, the tree considers a fresh random subset of features, or all features if configured to do so. Within that candidate set, the tree chooses the split that best improves its training criterion, such as squared error for regression.
 
-A random forest is a supervised classification algorithm. It creates a forest (many decision trees) and orders their nodes and splits randomly. The more trees in the forest, the better the results it can produce.
-
-If you input a training dataset with targets and features into the decision tree, it will formulate some set of rules that can be used to perform predictions.
-
-Example: You want to predict whether a visitor to your e-commerce Web site will enjoy a mystery novel. First, collect information about past books they've read and liked. Metadata about the novels will be the input; e.g. number of pages, author, publication date, which series it's part of if any. The decision tree contains rules that apply to those features; for example, some readers like very long books and some don't. Inputting metadata about new novels will result in a prediction regarding whether or not the Web site visitor in question would like that novel. Arranging the nodes and defining the rules relies on information gain and Gini-index calculations. With random forests, finding the root node and splitting the feature nodes is done randomly.
+For classification, trees can vote for a class; scikit-learn averages their predicted class probabilities and chooses the class with the highest average. For regression, the forest averages the trees' numerical predictions. Combining diverse trees usually reduces the variation in predictions caused by changes in the training data, which can reduce overfitting. More trees increase computation, and improvements eventually level off. See the [scikit-learn random-forest guide](https://scikit-learn.org/stable/modules/ensemble.html#random-forests).

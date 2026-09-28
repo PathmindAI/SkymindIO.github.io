@@ -19,11 +19,11 @@ Many of these tips have already been discussed in the academic literature. Our p
 * <a href="#regularization">Regularization</a>
 * <a href="#minibatch">Minibatch Size</a>
 * <a href="#updater">Updater and Optimization Algorithm</a>
-* <a href="#normalization">Gradient Normalization</a>
+* <a href="#gradient-normalization">Gradient Clipping</a>
 * <a href="#rnn">Recurrent Neural Networks</a>
 * <a href="#dbn">Deep Belief Network</a>
-* <a href="#rbm">Restricted Boltzmann Machines</a>
-* <a href="#NaN">NaN, Not a Number issues</a>
+* <a href="#rbm">Choosing Layer Width and Depth</a>
+* <a href="#NaN">NaN and Infinity Errors</a>
 
 
 ## <a name="normalization">Data Normalization</a>
@@ -101,9 +101,9 @@ The optimization algorithm is how updates are made, given the gradient. The simp
 
 A good default choice in most cases is to use the stochastic gradient descent optimization algorithm combined with one of the Momentum/Rmsprop/Adagrad updaters.
 
-## <a name="normalization">Gradient Normalization</a>
+## <a name="gradient-normalization">Gradient Clipping</a>
 
-When training a neural network, it can sometimes be helpful to apply gradient normalization, to avoid the gradients being too large (the so-called exploding gradient problem, common in recurrent neural networks) or too small. This can be applied using the .gradientNormalization(GradientNormalization) and .gradientNormalizationThreshould(double) methods. 
+[Gradient clipping](https://docs.pytorch.org/docs/2.9/generated/torch.nn.utils.clip_grad_norm_.html) limits excessively large gradients, for example by capping their norm before a parameter update. Vanishing gradients need a separate diagnosis: check the activation functions and weight initialization. When training with float16, also check for [underflow and the need for loss scaling](https://docs.pytorch.org/docs/2.9/amp.html#gradient-scaling).
 
 ## <a name="rnn">Recurrent Neural Networks: Truncated Backpropagation through Time</a>
 
@@ -115,18 +115,22 @@ When using a deep-belief network, pay close attention here. An RBM (the componen
 
 See Geoff Hinton's definitive work, [A Practical Guide to Training Restricted Boltzmann Machines](https://www.cs.toronto.edu/~hinton/absps/guideTR.pdf), for a list of all of the different probability distributions.
 
-## <a name="rbm">Restricted Boltzmann Machines (RBMs)</a>
+<a id="restricted-boltzmann-machines-rbms"></a>
 
-When creating hidden layers for autoencoders that perform compression, give them fewer neurons than your input data. If the hidden-layer nodes are too close to the number of input nodes, you risk reconstructing the identity function. Too many hidden-layer neurons increase the likelihood of noise and overfitting. For an input layer of 784, you might choose an initial hidden layer of 500, and a second hidden layer of 250. No hidden layer should be less than a quarter of the input layer’s nodes. And the output layer will simply be the number of labels.
+## <a name="rbm">Choosing Layer Width and Depth</a>
 
-Larger datasets require more hidden layers. Facebook’s Deep Face uses nine hidden layers on what we can only presume to be an immense corpus. Many smaller datasets might only require three or four hidden layers, with their accuracy decreasing beyond that depth. As a rule: larger data sets contain more variation, which require more features/neurons for the net to obtain accurate results. Typical machine learning, of course, has one hidden layer, and those shallow nets are called Perceptrons.
+Choose layer widths and depth by comparing performance on held-out validation data. Start with a small model, then test wider or deeper alternatives and keep changes that improve the metric relevant to your task. [TensorFlow's guide to overfitting](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit#demonstrate_overfitting) illustrates this process.
 
-Large datasets require that you pretrain your RBM several times. Only with multiple pretrainings will the algorithm learn to correctly weight features in the context of the dataset. That said, you can run the data in parallel or through a cluster to speed up the pretraining.
+For an autoencoder used for compression, tune the size of the compressed representation against reconstruction quality on validation data. The decoder's output matches the data being reconstructed; class labels are targets for a separate classification task. See the [deep-autoencoder](./deep-autoencoder) and [restricted Boltzmann machine](./restricted-boltzmann-machine) lessons for their architectures and training methods.
 
-## <a name="NaN">NaN, Not a Number Errors in Scoring</a>
+If you use RBM pretraining, evaluate its benefit for your task and choose the training duration from measured results.
 
-Backpropagation involves the multiplication of very small gradients, due to limited precision when representing real numbers values very close to zero can not be represented. The term for this issue is Arithmetic Underflow. If your Neural Network is throwing nan's then the solution is to retune your network to avoid the very small gradients. This is more likely an issue with deeper Neural Networks. 
+<a id="nan-not-a-number-errors-in-scoring"></a>
 
-You can try using double data type but it's usually recommended to retune the net first.
+## <a name="NaN">NaN and Infinity Errors</a>
 
-Following the basic tuning tips and monitoring the results is the way to ensure NAN doesn't show up anymore.
+NaN means "not a number." [Underflow](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html) can round tiny values to zero; it does not by itself produce NaN. Invalid operations such as 0/0 or taking the logarithm of a negative real number can produce NaN. Overflow can produce infinity, which can lead to NaN in later arithmetic.
+
+When NaN or infinity appears, check the input data first, then trace the forward and backward computations to find the first nonfinite value. Tools such as [TensorFlow's numerical checks](https://www.tensorflow.org/api_docs/python/tf/debugging/enable_check_numerics) can stop execution at an operation that produces NaN or infinity.
+
+Fix the cause at that point: correct invalid inputs or operations, use a numerically stable loss implementation, or address overflow with an appropriate data type. If parameter updates are becoming too large, investigate the learning rate and gradient clipping.

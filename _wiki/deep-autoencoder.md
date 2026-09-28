@@ -1,53 +1,132 @@
 ---
 title: Deep Autoencoders
 short_title: Deep Autoencoders
-description: Multilayer (deep) symmetrical neural networks that create a representation of the input and reconstruct it.
+description: How autoencoders encode and reconstruct inputs, with a worked parameter count and runnable Python example.
 ---
 
-A deep autoencoder is composed of two, symmetrical deep-belief networks that typically have four or five shallow layers representing the encoding half of the net, and second set of four or five layers that make up the decoding half.
+An autoencoder learns to reconstruct its input. Its encoder turns the input into a representation, and its decoder uses that representation to predict the original values. A deep autoencoder passes those values through several hidden layers. The [neural-network guide](./neural-network#deep-learning) explains how successive layers transform a representation.
 
-The layers are [restricted Boltzmann machines](./restricted-boltzmann-machine), the building blocks of deep-belief networks, with several peculiarities that we'll discuss below. Here's a simplified schema of a deep autoencoder's structure, which we'll explain below.
-
-![deep autoencoder](/images/wiki/deep_autoencoder.png) 
-
-Processing the benchmark dataset [MNIST](http://yann.lecun.com/exdb/mnist/){:target="_blank"}, a deep autoencoder would use binary transformations after each RBM. Deep autoencoders can also be used for other types of datasets with real-valued data, on which you would use Gaussian rectified transformations for the RBMs instead. 
+Early deep autoencoders used [restricted Boltzmann machines](./restricted-boltzmann-machine) to initialize their weights. An encoder and decoder can also be trained together by backpropagation, using a loss that measures reconstruction error. [TensorFlow's introductory tutorial](https://www.tensorflow.org/tutorials/generative/autoencoder) demonstrates this approach.
 
 ### Encoding Input Data
 
-Let’s sketch out an example encoder:
-    
-     784 (input) ----> 1000 ----> 500 ----> 250 ----> 100 -----> 30
+Consider an encoder for a 28-by-28-pixel image from [MNIST](./mnist). Flattening the image produces 784 input values. One possible sequence of layer widths is:
 
-If, say, the input fed to the network is 784 pixels (the square of the 28x28 pixel images in the MNIST dataset), then the first layer of the deep autoencoder should have 1000 parameters; i.e. slightly larger. 
+```text
+784 (input) → 1000 → 500 → 250 → 100 → 30 (code)
+```
 
-This may seem counterintuitive, because having more parameters than input is a good way to overfit a neural network. 
+Each number gives the count of values produced by that layer. The first hidden layer has **1,000 neurons**. In a fully connected layer, each neuron has a weight for each of its 784 inputs, plus one bias. Its parameter count is therefore:
 
-In this case, expanding the parameters, and in a sense expanding the features of the input itself, will make the eventual decoding of the autoencoded data possible. 
+```text
+weights: 784 × 1,000 = 784,000
+biases:        1,000 =   1,000
+total:                  785,000 parameters
+```
 
-This is due to the representational capacity of sigmoid-belief units, a form of transformation used with each layer. Sigmoid belief units can’t represent as much as information and variance as real-valued data. The expanded first layer is a way of compensating for that. 
+For a dense layer with `n` inputs and `m` outputs, the count is `n * m + m` when every output has a bias. The [Keras Dense documentation](https://keras.io/api/layers/core_layers/dense/) describes these weights and biases. The 785,000 parameters belong to this first layer; later layers add their own parameters.
 
-The layers will be 1000, 500, 250, 100 nodes wide, respectively, until the end, where the net produces a vector 30 numbers long. This 30-number vector is the last layer of the first half of the deep autoencoder, the pretraining half, and it is the product of a normal RBM, rather than an classification output layer such as Softmax or logistic regression, as you would normally see at the end of a deep-belief network. 
+The encoder above first expands the representation, then reduces it to 30 values. Those widths are design choices. Compression comes from the narrow code, often called the bottleneck; an expanded first layer is optional. Compare candidate widths using reconstruction error on validation data.
 
 ### Decoding Representations
 
-Those 30 numbers are an encoded version of the 28x28 pixel image. The second half of a deep autoencoder actually learns how to decode the condensed vector, which becomes the input as it makes its way back.
+The decoder maps the 30-value code back to 784 predicted pixel values. A decoder that mirrors the encoder's widths would be:
 
-The decoding half of a deep autoencoder is a feed-forward net with layers 100, 250, 500 and 1000 nodes wide, respectively. 
-Layer weights are initialized randomly. 
+```text
+30 (code) → 100 → 250 → 500 → 1000 → 784 (reconstruction)
+```
 
-		784 (output) <---- 1000 <---- 500 <---- 250 <---- 30
+Its output has the same number of values as the input image. The training target is the original image. Backpropagation carries the reconstruction-loss gradient through the decoder and into the encoder, adjusting both sets of weights.
 
-The decoding half of a deep autoencoder is the part that learns to reconstruct the image. It does so with a second feed-forward net which also conducts back propagation. The back propagation happens through reconstruction entropy.
+### A Small Numerical Example
+
+A `2 → 1 → 2` autoencoder makes the arithmetic small enough to follow. This is a shallow example of the same encoding and decoding operations used in a deeper network. Choose the starting weights by hand and feed it `x = [1, 2]`.
+
+The encoder has weights `[0.5, 0.25]`, a zero bias, and a ReLU activation, which returns `max(0, value)`:
+
+```text
+h = max(0, 0.5 × 1 + 0.25 × 2 + 0) = 1
+```
+
+The decoder has weights `[0.8, 1.5]` and two zero biases. Its outputs are linear because this example reconstructs continuous values:
+
+```text
+reconstruction = [0.8 × 1 + 0, 1.5 × 1 + 0] = [0.8, 1.5]
+target         = [1, 2]
+mean squared error = ((0.8 − 1)² + (1.5 − 2)²) / 2 = 0.145
+```
+
+The encoder has `2 × 1 + 1 = 3` parameters. The decoder has `1 × 2 + 2 = 4`, making **7 parameters** in total. The hidden value `h = 1` is an activation computed for this input; the weights and biases are the quantities training adjusts.
+
+### Runnable Python
+
+This Python 3 example needs no additional packages. It reproduces the calculation and takes one gradient-descent step on the same input. For a mean squared error over two outputs, the derivative with respect to each prediction equals that prediction minus its target. Backpropagation then uses the decoder weights to calculate the derivative with respect to the hidden value.
+
+```python
+x = [1.0, 2.0]
+encoder_weights = [0.5, 0.25]
+encoder_bias = 0.0
+decoder_weights = [0.8, 1.5]
+decoder_biases = [0.0, 0.0]
+learning_rate = 0.01
+
+
+def forward():
+    z = sum(w * value for w, value in zip(encoder_weights, x)) + encoder_bias
+    h = max(0.0, z)
+    prediction = [w * h + b for w, b in zip(decoder_weights, decoder_biases)]
+    loss = sum((pred - target) ** 2 for pred, target in zip(prediction, x)) / len(x)
+    return z, h, prediction, loss
+
+
+z, h, prediction, loss = forward()
+print("First dense layer parameters:", 784 * 1000 + 1000)
+print("Toy model parameters:", len(encoder_weights) + 1
+      + len(decoder_weights) + len(decoder_biases))
+print("Hidden value:", h)
+print("Before:", prediction, "MSE:", round(loss, 6))
+
+# Compute every gradient using the original weights, before updating them.
+prediction_grad = [2 * (pred - target) / len(x)
+                   for pred, target in zip(prediction, x)]
+decoder_weight_grad = [grad * h for grad in prediction_grad]
+hidden_grad = sum(grad * w for grad, w in zip(prediction_grad, decoder_weights))
+z_grad = hidden_grad if z > 0 else 0.0
+encoder_weight_grad = [z_grad * value for value in x]
+
+encoder_weights = [w - learning_rate * grad
+                   for w, grad in zip(encoder_weights, encoder_weight_grad)]
+encoder_bias -= learning_rate * z_grad
+decoder_weights = [w - learning_rate * grad
+                   for w, grad in zip(decoder_weights, decoder_weight_grad)]
+decoder_biases = [b - learning_rate * grad
+                  for b, grad in zip(decoder_biases, prediction_grad)]
+
+_, _, prediction, loss = forward()
+print("After:", [round(value, 6) for value in prediction], "MSE:", round(loss, 6))
+```
+
+Output:
+
+```text
+First dense layer parameters: 785000
+Toy model parameters: 7
+Hidden value: 1.0
+Before: [0.8, 1.5] MSE: 0.145
+After: [0.847789, 1.592173] MSE: 0.094745
+```
+
+The update reduces reconstruction error for this example. To learn a useful representation, train on many examples, then measure reconstruction error on held-out data to see how the model handles new inputs.
 
 ### Training Nuances
 
-At the stage of the decoder’s backpropagation, the learning rate should be lowered, or made slower: somewhere between 1e-3 and 1e-6, depending on whether you’re handling binary or continuous data, respectively.
+Choose a reconstruction loss that fits the data and output activation. Mean squared error measures differences between continuous values, as in the example above. Select the learning rate and layer widths using validation data, and reserve the test set for the final evaluation. The [datasets guide](./datasets-ml) explains those roles.
 
 ## Use Cases
 
 ### Image Search
 
-As we mentioned above, deep autoencoders are capable of compressing images into 30-number vectors. 
+The encoder above represents each image with 30 numbers; a different architecture can use a different code width.
 
 Image search, therefore, becomes a matter of uploading an image, which the search engine will then compress to 30 numbers, and compare that vector to all the others in its index. 
 
@@ -63,9 +142,9 @@ Deep autoencoders are useful in topic modeling, or statistically modeling abstra
 
 This, in turn, is an important step in question-answer systems like Watson.
 
-In brief, each document in a collection is converted to a Bag-of-Words (i.e. a set of word counts) and those word counts are scaled to decimals between 0 and 1, which may be thought of as the probability of a word occurring in the doc. 
+A document can be represented by word counts and encoded into a shorter vector. The decoder learns to reconstruct the document representation, using a loss suited to that representation. Scaling counts into a range between 0 and 1 does not by itself make them probabilities.
 
-The scaled word counts are then fed into a deep-belief network, a stack of restricted Boltzmann machines, which themselves are just a subset of feedforward-backprop autoencoders. Those deep-belief networks, or DBNs, compress each document to a set of 10 numbers through a series of sigmoid transforms that map it onto the feature space. 
+The encoder architecture determines the number of values in the code. Historical work on semantic hashing used RBM pretraining; the [paper linked above](https://www.cs.utoronto.ca/~rsalakhu/papers/semantic_final.pdf) describes that particular method.
 
 Each document’s number set, or vector, is then introduced to the same vector space, and its distance from every other document-vector measured. Roughly speaking, nearby document-vectors fall under the same topic. 
 
