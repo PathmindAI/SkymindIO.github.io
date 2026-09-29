@@ -1,136 +1,127 @@
 ---
 title: Neural Network Tuning
 short_title: Neural Network Tuning
-description: Beginner's guide to troubleshooting neural networks.
+description: Diagnose stalled training, deteriorating validation performance, and NaN or infinity errors in neural networks.
 ---
 
-Neural networks can be difficult to tune. If the network hyperparameters are poorly chosen, the network may learn slowly, or perhaps not at all. This page aims to provide some baseline steps you should take when tuning your network.
+Start with what the model is doing. Record training and validation performance as learning proceeds, then use the symptom below to choose your next check. Loss measures the error the optimizer tries to reduce; also track a metric that reflects your task, such as classification accuracy or prediction error in the original units.
 
-Many of these tips have already been discussed in the academic literature. Our purpose is to consolidate them in one site and express them as clearly as possible.
+Keep the data split fixed while comparing settings. Use validation data to choose a model and reserve the test set for the final evaluation. The [datasets guide](./datasets-ml) explains how to separate those roles.
 
 ## Contents
 
-* <a href="#normalization">Data Normalization</a>
-* <a href="#weight">Weight Initialization</a>
-* <a href="#epochs">Epochs and Iterations</a>
-* <a href="#lrate">Learning Rate</a>
-* <a href="#activation">Activation Function</a>
-* <a href="#loss">Loss Function</a>
-* <a href="#regularization">Regularization</a>
-* <a href="#minibatch">Minibatch Size</a>
-* <a href="#updater">Updater and Optimization Algorithm</a>
-* <a href="#gradient-normalization">Gradient Clipping</a>
-* <a href="#rnn">Recurrent Neural Networks</a>
-* <a href="#dbn">Deep Belief Network</a>
-* <a href="#rbm">Choosing Layer Width and Depth</a>
-* <a href="#NaN">NaN and Infinity Errors</a>
+| Symptom | Where to start |
+|---|---|
+| [Training stalls](#training-stalls) | Check the data and loss, then try fitting a small batch. |
+| [Validation performance deteriorates](#validation-performance-deteriorates) | Check the comparison, then inspect whether training keeps improving as validation gets worse. |
+| [Calculations produce invalid numbers](#calculations-produce-invalid-numbers) | Find the first NaN or infinity and the operation that produced it. |
 
+## Training Stalls
 
-## <a name="normalization">Data Normalization</a>
+A loss that barely moves can result from a data error, a broken parameter update, or settings that make learning slow. A plateau after substantial improvement can also mean the current model has learned as much as it can from the available inputs. Establish which situation you have before adding layers.
 
-What's distribution of your data? Are you scaling it properly? As a general rule:
+<a id="data-normalization"></a><a id="normalization"></a>
+<a id="activation-function"></a><a id="activation"></a>
+<a id="loss-function"></a><a id="loss"></a>
 
-- For continuous values: you want these to be in the range of -1 to 1, 0 to 1 or ditributed normally with mean 0 and standard deviation 1. This does not have to be exact, but ensuring your inputs are approximately in this range can help during training. Scale down large inputs, and scale up small inputs.
-- For discrete classes (and, for classification problems for the output), generally use a one-hot representation. That is, if you have 3 classes, then your data will be represeted as [1,0,0], [0,1,0] or [0,0,1] for each of the 3 classes respectively.
+### Check the Inputs, Targets and Loss
 
-Note that it's very important to use the exact same normalization method for both the training data and testing data.
+Inspect a few examples after preprocessing. Confirm that each input still has the correct target and that the model's output shape matches what the loss expects. For a classifier, check the class encoding and whether the loss expects raw scores, called logits, or probabilities. Applying a probability transform twice changes the objective. The [Keras loss documentation](https://keras.io/api/losses/) shows how these conventions are specified.
 
-## <a name="weight">Weight Initialization</a>
+For continuous predictions, a linear output with mean squared error is one starting point. An [autoencoder](./deep-autoencoder) instead uses its input as the reconstruction target, with an output activation and loss suited to those values.
 
-You need to make sure your weights are neither too big nor too small. Xavier weight initialization is usually a good choice for this. For networks with rectified linear (relu) or leaky relu activations, RELU weight initialization is a sensible choice.
+For numerical inputs with very different scales, try standardization or another transformation suited to the data. Estimate its parameters, such as means and standard deviations, from the training set. Apply that fitted transformation unchanged to validation and test data. [Fitting preprocessing on held-out data leaks information](https://scikit-learn.org/stable/common_pitfalls.html#data-leakage) into model development.
 
-## <a name="epochs">Number of Epochs and Number of Iterations</a>
+### Try Fitting a Small, Fixed Batch
 
-An epoch is defined as a full pass of the data set.
+Take a small set of clean training examples, such as ten, and train repeatedly on that same set. Temporarily turn off augmentation and regularization that deliberately make fitting harder. For a model with enough capacity and compatible targets, the training loss should fall substantially.
 
-Too few epochs don't give your network enough time to learn good parameters; too many and you might overfit the training data. One way to choose the number of epochs is to use early stopping. Early stopping can also help to prevent the neural network from overfitting (i.e., can help the net generalize better to unseen data).
+If it barely changes, check that gradients reach the intended parameters and that an optimizer step changes their values. Inspect whether the labels match the inputs. A model that can fit the small batch has passed one diagnostic; it still needs to learn useful patterns across the full dataset. [Stanford's training notes](https://cs231n.github.io/neural-networks-3/#sanity) describe this check and its limits.
 
-## <a name="lrate">Learning Rate</a>
+<a id="learning-rate"></a><a id="lrate"></a>
+<a id="updater-and-optimization-algorithm"></a><a id="updater"></a>
+<a id="minibatch-size"></a><a id="minibatch"></a>
+<a id="policies-and-scheduling"></a>
 
-The learning rate is one of, if not the most important hyperparameter. If this is too large or too small, your network may learn very poorly, very slowly, or not at all. Typical values for the learning rate are in the range of 0.1 to 1e-6, though the optimal learning rate is usually data (and network architecture) specific. Some simple advice is to start by trying three different learning rates – 1e-1, 1e-3, and 1e-6 – to get a rough idea of what it should be, before further tuning this. Ideally, they run models with different learning rates simultaneously to save time.
+### Inspect the Updates Before Changing the Architecture
 
-The usual approach to selecting an appropriate learning rate is to use [DL4J's visualization interface](http://deeplearning4j.org/visualization) to visualize the progress of training. You want to pay attention to both the loss over time, and the ratio of update magnitudes to parameter magnitudes (a ratio of approximately 1:1000 is a good place to start). For more information on tuning the learning rate, see [this link](http://cs231n.github.io/neural-networks-3/#baby).
+Compare short runs with a smaller and a larger learning rate, starting from the same initial model and data order. Large swings or rising loss can indicate updates that are too large; extremely slow progress can indicate updates that are too small. Judge the curves alongside gradient and parameter changes, since several failures can produce the same curve.
 
-For training neural networks in a distributed manner, you may need a different (frequently higher) learning rate compared to training the same network on a single machine.
+A minibatch is the group of examples used for one update. Changing its size changes both the update's noise and the number of updates in an epoch, one pass through the training set. Record both epochs and update counts when comparing runs. For learning-rate schedules, check whether the framework counts epochs or optimizer steps; adding GPUs does not by itself determine a schedule adjustment.
 
-### Policies and Scheduling
+<a id="weight-initialization"></a><a id="weight"></a>
 
-You can optionally define a learning rate policy for your neural network. A policy will change the learning rate over time, achieving better results since the learning rate can "slow down" to find closer local minima for convergence. A common policy used is scheduling. 
+Inspect activations and gradients across layers. Saturated activations or many inactive ReLU units can impede learning. Check input scale and initialization together; initialization methods such as He for ReLU and Glorot/Xavier for tanh are useful starting points. Choose and tune the optimizer as a whole, for example SGD with momentum or Adam, and keep its settings recorded with the run.
 
-Note that if you're using multiple GPUs, this will affect your scheduling. For example, if you have 2x GPUs, then you will need to divide the iterations in your schedule by 2, since the throughput of your training process will be double, and the learning rate schedule is only applicable to the local GPU.
+<a id="recurrent-neural-networks-truncated-backpropagation-through-time"></a><a id="rnn"></a>
 
-## <a name="activation">Activation Function</a>
+For recurrent networks, truncated backpropagation limits how far gradients travel through a sequence. A shorter window reduces memory use but can prevent the model from learning dependencies across that boundary. See the [LSTM training explanation](./lstm) before changing the window.
 
-There are two aspects to be aware of, with regard to the choice of activation function.
+## Validation Performance Deteriorates
 
-First, the activation function of the hidden (non-output) layers. As a general rule, 'relu' or 'leakyrelu' activations are good choices for this. Some other activation functions (tanh, sigmoid, etc) are more prone to vanishing gradient problems, which can make learning much harder in deep neural networks. However, for LSTM layers, the tanh activation function is still commonly used.
+If training improves while validation worsens, the model may be fitting details that fail to generalize. First establish that the measurements and data split support that interpretation.
 
-Second, regarding the activation function for the output layer: this is usually application specific. For classification problems, you generally want to use the softmax activation function, combined with the negative log likelihood / MCXENT (multi-class cross entropy). The softmax activation function gives you a probability distribution over classes (i.e., outputs sum to 1.0). For regression problems, the "identity" activation function is frequently a good choice, in conjunction with the MSE (mean squared error) loss function.
+### Make the Comparison Consistent
 
-## <a name="loss">Loss Function</a>
+Evaluate checkpoints on a fixed validation set in the framework's evaluation mode. Dropout and batch normalization behave differently during training and evaluation. Training-time augmentation can also make training examples harder than validation examples.
 
-Loss functions for each neural network layer can either be used in pretraining, to learn better weights, or in classification (on the output layer) for achieving some result. (In the example above, classification happens in the override section.)
+For a direct comparison, evaluate the same saved checkpoint on both datasets under matching conditions, and calculate the same data loss or task metric. A logged training loss averaged over a changing model is a different measurement from validation loss calculated after the epoch. The [Keras FAQ](https://keras.io/getting_started/faq/#why-is-my-training-loss-much-higher-than-my-testing-loss) explains these differences.
 
-Your net's purpose will determine the loss function you use. For pretraining, choose reconstruction entropy. For classification, use multiclass cross entropy.
+Check whether the split represents the prediction task. A future-data evaluation should preserve time order; records from the same person may need to stay in one split. If the validation population differs from training, investigate that difference alongside overfitting.
 
-## <a name="regularization">Regularization</a>
+<a id="number-of-epochs-and-number-of-iterations"></a><a id="epochs"></a>
 
-Regularization methods can help to avoid overfitting during training. Overfitting occurs when the network predicts the training set very well, but makes poor predictions on data the network has never seen. One way to think about overfitting is that the network memorizes the training data (instead of learning the general relationships in it).
+### Keep the Best Validation Checkpoint
 
-Common types of regularization include:
+These illustrative losses are measured on fixed datasets with the same evaluation procedure:
 
-- l1 and l2 regularization penalizes large network weights, and avoids weights becoming too large. Some level of l2 regularization is commonly used in practice. However, note that if the l1 or l2 regularization coefficients are too high, they may over-penalize the network, and stop it from learning. Common values for l2 regularization are 1e-3 to 1e-6.
-- Dropout, is a frequently used regularization method can be very effective. Dropout is most commoly used with a dropout rate of 0.5.
-- Dropconnect (conceptually similar to dropout, but used much less frequently)
-- Restricting the total number of network size (i.e., limit the number of layers and size of each layer)
-- Early stopping
+| Epoch | Training loss | Validation loss |
+|---|---:|---:|
+| 1 | 0.80 | 0.90 |
+| 5 | 0.40 | 0.50 |
+| 10 | 0.20 | 0.65 |
 
-To use l1/l2/dropout regularization, use .regularization(true) followed by .l1(x), .l2(y), .dropout(z) respectively. Note that z in dropout(z) is the probability of retaining an activation.
+The epoch-5 checkpoint has the lowest validation loss among the three. Continuing to epoch 10 improves training loss while worsening validation loss, a pattern consistent with overfitting.
 
-## <a name="minibatch">Minibatch Size</a>
+Early stopping can stop training after the validation metric fails to improve for a chosen number of checks. Allow for noise, and explicitly save or restore the best checkpoint. In [Keras EarlyStopping](https://keras.io/api/callbacks/early_stopping/), `restore_best_weights=True` restores the best weights; the default is `False`.
 
-A minibatch refers to the number of examples used at a time, when computing gradients and parameter updates. In practice (for all but the smallest data sets), it is standard to break your data set up into a number of minibatches.
-
-The ideal minibatch size will vary. For example, a minibatch size of 10 is frequently too small for GPUs, but can work on CPUs. A minibatch size of 1 will allow a network to train, but will not reap the benefits of parallelism. 32 may be a sensible starting point to try, with minibatches in the range of 16-128 (sometimes smaller or larger, depending on the application and type of network) being common.
-
-## <a name="updater">Updater and Optimization Algorithm</a>
-
-The term 'updater' can refer to training mechanisms such as Momentum, RMSProp, Adagrad, and others. Using one of these methods can result in much faster network training companed to 'vanilla' stochastic gradient descent.
-
-The optimization algorithm is how updates are made, given the gradient. The simplest (and most commonly used) method is stochastic gradient descent (SGD), however DL4J also provides SGD with line search, conjugate gradient and LBFGS optimization algorithms. These latter algorithms are more powerful compared to SGD, but considerably more costly per parameter update due to a line search component, and aren't used as much in practice. Note that you can in principle combine any updater with any optimization algorithm.
-
-A good default choice in most cases is to use the stochastic gradient descent optimization algorithm combined with one of the Momentum/Rmsprop/Adagrad updaters.
-
-## <a name="gradient-normalization">Gradient Clipping</a>
-
-[Gradient clipping](https://docs.pytorch.org/docs/2.9/generated/torch.nn.utils.clip_grad_norm_.html) limits excessively large gradients, for example by capping their norm before a parameter update. Vanishing gradients need a separate diagnosis: check the activation functions and weight initialization. When training with float16, also check for [underflow and the need for loss scaling](https://docs.pytorch.org/docs/2.9/amp.html#gradient-scaling).
-
-## <a name="rnn">Recurrent Neural Networks: Truncated Backpropagation through Time</a>
-
-When training recurrent networks with long time series, it is generally advisable to use truncated backpropagation through time. With 'standard' backpropagation through time the cost per parameter update can become prohibative. You can read more about backpropagation [here](./backpropagation).
-
-## <a name="dbn">Visible/Hidden Unit</a>
-
-When using a deep-belief network, pay close attention here. An RBM (the component of the DBN used for feature extraction) is stochastic and will sample from different probability distributions relative to the visible or hidden units specified.
-
-See Geoff Hinton's definitive work, [A Practical Guide to Training Restricted Boltzmann Machines](https://www.cs.toronto.edu/~hinton/absps/guideTR.pdf), for a list of all of the different probability distributions.
-
+<a id="regularization"></a>
 <a id="restricted-boltzmann-machines-rbms"></a>
+<a id="choosing-layer-width-and-depth"></a><a id="rbm"></a>
 
-## <a name="rbm">Choosing Layer Width and Depth</a>
+### Reduce Overfitting and Recheck
 
-Choose layer widths and depth by comparing performance on held-out validation data. Start with a small model, then test wider or deeper alternatives and keep changes that improve the metric relevant to your task. [TensorFlow's guide to overfitting](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit#demonstrate_overfitting) illustrates this process.
+Try a smaller model, stronger regularization, or more representative training data. Regularization can include weight penalties or dropout; tune its strength because excessive regularization can also prevent useful learning. Data augmentation should preserve the target, as a crop that removes the object being classified can create a mislabeled example.
 
-For an autoencoder used for compression, tune the size of the compressed representation against reconstruction quality on validation data. The decoder's output matches the data being reconstructed; class labels are targets for a separate classification task. See the [deep-autoencoder](./deep-autoencoder) and [restricted Boltzmann machine](./restricted-boltzmann-machine) lessons for their architectures and training methods.
+Compare layer widths and depths using validation performance. For autoencoders, compare bottleneck sizes against reconstruction quality on held-out examples. The [TensorFlow overfitting tutorial](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit) demonstrates capacity and regularization experiments.
 
-If you use RBM pretraining, evaluate its benefit for your task and choose the training duration from measured results.
+<a id="visiblehidden-unit"></a><a id="dbn"></a>
+
+If you are using RBM pretraining, check the model's visible and hidden unit distributions and evaluate whether pretraining improves your result. The [restricted Boltzmann machine guide](./restricted-boltzmann-machine) explains that separate training procedure.
 
 <a id="nan-not-a-number-errors-in-scoring"></a>
+<a id="nan-and-infinity-errors"></a><a id="NaN"></a>
 
-## <a name="NaN">NaN and Infinity Errors</a>
+## Calculations Produce Invalid Numbers
 
-NaN means "not a number." [Underflow](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html) can round tiny values to zero; it does not by itself produce NaN. Invalid operations such as 0/0 or taking the logarithm of a negative real number can produce NaN. Overflow can produce infinity, which can lead to NaN in later arithmetic.
+NaN means "not a number." Infinity and NaN can spread through later calculations, so the final loss may only reveal a failure that happened earlier.
 
-When NaN or infinity appears, check the input data first, then trace the forward and backward computations to find the first nonfinite value. Tools such as [TensorFlow's numerical checks](https://www.tensorflow.org/api_docs/python/tf/debugging/enable_check_numerics) can stop execution at an operation that produces NaN or infinity.
+### Locate the First Nonfinite Value
 
-Fix the cause at that point: correct invalid inputs or operations, use a numerically stable loss implementation, or address overflow with an appropriate data type. If parameter updates are becoming too large, investigate the learning rate and gradient clipping.
+Check that inputs and targets contain finite values after preprocessing. Then inspect the forward computation, followed by gradients and the parameter update. Stop at the first operation that changes finite values into NaN or infinity. [TensorFlow's numerical checks](https://www.tensorflow.org/api_docs/python/tf/debugging/enable_check_numerics) can report the operation that produces the invalid result.
+
+### Match the Fix to the Operation
+
+Invalid arithmetic such as `0/0` or the logarithm of a negative real number can produce NaN. Overflow can produce infinity, and later arithmetic such as infinity minus infinity can produce NaN. Underflow can round a tiny value to zero; it does not by itself produce NaN. These are distinct [floating-point conditions](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html).
+
+For a zero denominator, check why it became zero and what the formula should mean in that case. For unstable probability calculations, use a numerically stable loss implementation that accepts logits. If values first become extreme after a parameter update, inspect the learning rate and gradient magnitudes.
+
+<a id="gradient-clipping"></a><a id="gradient-normalization"></a>
+
+### Check Gradient Scale and Precision
+
+Gradient clipping limits excessively large gradients before an update. Use it when large finite gradients are the problem; clipping cannot repair a NaN already produced by invalid arithmetic.
+
+With float16 training, small gradients can underflow. Mixed-precision training commonly uses loss scaling to keep them representable. When clipping scaled gradients, unscale them first so the threshold applies to the original gradient magnitudes. [PyTorch's mixed-precision examples](https://docs.pytorch.org/docs/2.9/notes/amp_examples.html#gradient-clipping) show this order.
+
+After fixing the cause, restart from a checkpoint whose model and optimizer state are finite. Check that the operation now stays finite, then confirm that training and validation performance improve under the corrected setup.
