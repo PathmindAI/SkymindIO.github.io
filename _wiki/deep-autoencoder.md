@@ -1,16 +1,21 @@
 ---
 title: Deep Autoencoders
 short_title: Deep Autoencoders
-description: How autoencoders encode and reconstruct inputs, with a worked parameter count and runnable Python example.
+description: How an encoder learns a compressed representation and a decoder reconstructs the input, with a worked example and runnable Python.
 ---
 
-An autoencoder learns to reconstruct its input. Its encoder turns the input into a representation, and its decoder uses that representation to predict the original values. A deep autoencoder passes those values through several hidden layers. The [neural-network guide](./neural-network#deep-learning) explains how successive layers transform a representation.
+Give an autoencoder an image of a handwritten digit, and ask it to reproduce the pixel values. The encoder turns the image into a code. The decoder uses that code to reconstruct the image. Training adjusts both networks to reduce the difference between the reconstruction and the original.
 
-Early deep autoencoders used [restricted Boltzmann machines](./restricted-boltzmann-machine) to initialize their weights. An encoder and decoder can also be trained together by backpropagation, using a loss that measures reconstruction error. [TensorFlow's introductory tutorial](https://www.tensorflow.org/tutorials/generative/autoencoder) demonstrates this approach.
+This guide uses a code with fewer values than the input. That narrow representation is the bottleneck: it limits how much can pass directly from encoder to decoder. A deep autoencoder uses several hidden layers to build and decode the representation. The [neural-network guide](./neural-network#deep-learning) explains what those extra layers do.
 
-### Encoding Input Data
+```text
+input x → encoder → compressed code h → decoder → reconstruction x_hat
+   └──────────────── target for reconstruction loss ─────────────────┘
+```
 
-Consider an encoder for a 28-by-28-pixel image from [MNIST](./mnist). Flattening the image produces 784 input values. One possible sequence of layer widths is:
+## Encoding Input Data
+
+A 28-by-28-pixel [MNIST](./mnist) image contains 784 pixel values. Flatten those values into a vector and pass them through layers of weighted sums and activations. One possible encoder has these layer widths:
 
 ```text
 784 (input) → 1000 → 500 → 250 → 100 → 30 (code)
@@ -26,9 +31,17 @@ total:                  785,000 parameters
 
 For a dense layer with `n` inputs and `m` outputs, the count is `n * m + m` when every output has a bias. The [Keras Dense documentation](https://keras.io/api/layers/core_layers/dense/) describes these weights and biases. The 785,000 parameters belong to this first layer; later layers add their own parameters.
 
-The encoder above first expands the representation, then reduces it to 30 values. Those widths are design choices. Compression comes from the narrow code, often called the bottleneck; an expanded first layer is optional. Compare candidate widths using reconstruction error on validation data.
+These widths are design choices. The encoder can expand the representation in an early layer before narrowing it to the code. Its trained weights are shared across images; the activation values change with each image.
 
-### Decoding Representations
+## The Compressed Representation
+
+The encoder above produces 30 values for each image. This vector is also called a latent representation: values computed inside the model that carry information used by the decoder. Its coordinates are learned combinations of input features, so a coordinate need not correspond to a named property such as stroke thickness.
+
+The training objective determines what the encoder has an incentive to retain. With pixel reconstruction error, preserving a background pattern can matter as much as preserving a stroke if they contribute similar amounts to the loss. A compact representation therefore needs evaluation for the task in which you plan to use it. [The Deep Learning textbook](https://www.deeplearningbook.org/contents/autoencoders.html) explains the bottleneck and why reconstruction alone can still produce unhelpful features.
+
+Compare different code widths on validation data. A smaller code may lose useful detail; a larger one may make reconstruction easier while preserving more information than you need. Here, compression means fewer coordinates. Actual storage savings also depend on how many bits encode each value and how the decoder is stored or shared.
+
+## Decoding Representations
 
 The decoder maps the 30-value code back to 784 predicted pixel values. A decoder that mirrors the encoder's widths would be:
 
@@ -36,7 +49,17 @@ The decoder maps the 30-value code back to 784 predicted pixel values. A decoder
 30 (code) → 100 → 250 → 500 → 1000 → 784 (reconstruction)
 ```
 
-Its output has the same number of values as the input image. The training target is the original image. Backpropagation carries the reconstruction-loss gradient through the decoder and into the encoder, adjusting both sets of weights.
+Mirroring is one architecture choice. The decoder's output shape must match the input being reconstructed. For this image, reshape the 784 predictions into a 28-by-28 grid and compare it with the original. The decoder learns an approximate reconstruction from the code; details discarded by the encoder may be lost.
+
+## Training on Reconstruction Error
+
+For each ordinary reconstruction-training example, the target is the input itself. If `x` is the input, the encoder computes `h = f(x)` and the decoder computes `x_hat = g(h)`. A mean squared error over `d` input values is:
+
+```text
+loss = sum((x_hat[j] - x[j]) ** 2 for j in range(d)) / d
+```
+
+Backpropagation carries the loss gradient through the decoder and into the encoder. The optimizer uses those gradients to update both networks. The original pixel values supply the training targets without digit-class labels. [TensorFlow's autoencoder tutorial](https://www.tensorflow.org/tutorials/generative/autoencoder) demonstrates this joint training.
 
 ### A Small Numerical Example
 
@@ -120,32 +143,30 @@ The update reduces reconstruction error for this example. To learn a useful repr
 
 ### Training Nuances
 
-Choose a reconstruction loss that fits the data and output activation. Mean squared error measures differences between continuous values, as in the example above. Select the learning rate and layer widths using validation data, and reserve the test set for the final evaluation. The [datasets guide](./datasets-ml) explains those roles.
+Choose the output activation and loss to match the values being reconstructed. A linear output can predict unrestricted continuous values with mean squared error. For pixels scaled to the interval from 0 to 1, a sigmoid output constrains predictions to that interval. The reconstruction loss then measures the discrepancy you want training to reduce.
 
-## Use Cases
+Use training data to adjust the weights and validation data to choose the code width and other settings. Inspect held-out reconstructions alongside the numerical loss: an acceptable average can hide badly reconstructed examples. Reserve the test set for the final evaluation, as described in the [datasets guide](./datasets-ml). The [tuning guide](./neural-network-tuning) helps diagnose stalled training or worsening validation performance.
+
+<a id="use-cases"></a>
+
+## Using the Learned Representation
 
 ### Image Search
 
-The encoder above represents each image with 30 numbers; a different architecture can use a different code width.
-
-Image search, therefore, becomes a matter of uploading an image, which the search engine will then compress to 30 numbers, and compare that vector to all the others in its index. 
-
-Vectors containing similar numbers will be returned for the search query, and translated into their matching image. 
+You can encode images, store their codes, and retrieve images whose codes are nearby under a chosen distance measure. Evaluate the retrieved images against what readers mean by "similar." Reconstruction training rewards recovery of pixel values, so nearby codes may reflect background or texture when the search task needs object identity.
 
 ### Data Compression
 
-A more general case of image compression is data compression. Deep autoencoders are useful for [semantic hashing](https://www.cs.utoronto.ca/~rsalakhu/papers/semantic_final.pdf){:target="_blank"}, as discussed in this paper by Geoff Hinton.
+A code with 30 values has fewer coordinates than the original 784-value image. To assess it as a storage format, measure the encoded bit count and reconstruction quality together, including any model-storage cost that the application must bear. Changing code width or numerical precision changes that tradeoff.
 
-### Topic Modeling & Information Retrieval (IR)
+<a id="topic-modeling--information-retrieval-ir"></a>
 
-Deep autoencoders are useful in topic modeling, or statistically modeling abstract topics that are distributed across a collection of documents. 
+### Document Retrieval
 
-This, in turn, is an important step in question-answer systems like Watson.
+An encoder can also turn a document's word-count vector into a shorter code and train a decoder to reconstruct that representation. Test whether nearby codes retrieve relevant documents. A reconstruction objective does not by itself assign interpretable topics or establish that a retrieved document answers a question.
 
-A document can be represented by word counts and encoded into a shorter vector. The decoder learns to reconstruct the document representation, using a loss suited to that representation. Scaling counts into a range between 0 and 1 does not by itself make them probabilities.
+## Historical Note: RBM Pretraining
 
-The encoder architecture determines the number of values in the code. Historical work on semantic hashing used RBM pretraining; the [paper linked above](https://www.cs.utoronto.ca/~rsalakhu/papers/semantic_final.pdf) describes that particular method.
+In their [2006 paper, *Reducing the Dimensionality of Data with Neural Networks*](https://www.cs.toronto.edu/~hinton/absps/science.pdf), Geoffrey Hinton and Ruslan Salakhutdinov trained a stack of restricted Boltzmann machines layer by layer. Those weights initialized a deep encoder and a mirrored decoder, which they then fine-tuned together with backpropagation to reduce reconstruction error.
 
-Each document’s number set, or vector, is then introduced to the same vector space, and its distance from every other document-vector measured. Roughly speaking, nearby document-vectors fall under the same topic. 
-
-For example, one document could be the “question” and others could be the “answers,” a match the software would make using vector-space measurements.
+That pretraining procedure helped initialize deep networks. It is one way to prepare their weights; the encoder and decoder can also be trained directly on reconstruction loss, as in the example above. The [restricted Boltzmann machine guide](./restricted-boltzmann-machine) explains the separate RBM training method.
